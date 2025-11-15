@@ -1,1 +1,4 @@
 project_id = "lczzyelucnfvkicwdbbe"
+
+[functions.recommend-listings]
+verify_jwt = true
