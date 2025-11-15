@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
+import { ConversationFilters } from "./ConversationFilters";
 
 interface ConversationListProps {
   userId: string;
@@ -17,6 +19,7 @@ export const ConversationList = ({
   onSelectConversation,
   selectedConversationId,
 }: ConversationListProps) => {
+  const [filter, setFilter] = useState<'all' | 'buying' | 'selling'>('all');
   const { data: conversations, isLoading } = useQuery({
     queryKey: ["conversations", userId],
     queryFn: async () => {
@@ -41,7 +44,7 @@ export const ConversationList = ({
         { data: listings },
         { data: messages },
       ] = await Promise.all([
-        supabase.from("profiles").select("id, full_name, avatar_url").in("id", profileIds),
+        supabase.from("profiles").select("id, full_name, avatar_url, is_online, last_seen").in("id", profileIds),
         supabase.from("listings").select("id, title, images, price").in("id", listingIds),
         supabase
           .from("messages")
@@ -99,9 +102,17 @@ export const ConversationList = ({
     );
   }
 
+  // Filter conversations
+  const filteredConversations = conversations.filter((conv: any) => {
+    if (filter === 'buying') return conv.buyer_id === userId;
+    if (filter === 'selling') return conv.seller_id === userId;
+    return true;
+  });
+
   return (
     <div className="space-y-2">
-      {conversations.map((conv: any) => {
+      <ConversationFilters filter={filter} onFilterChange={setFilter} />
+      {filteredConversations.map((conv: any) => {
         const otherUser = conv.buyer_id === userId ? conv.seller : conv.buyer;
         const initials = otherUser?.full_name
           ?.split(" ")
@@ -118,12 +129,17 @@ export const ConversationList = ({
             onClick={() => onSelectConversation(conv.id)}
           >
             <div className="flex items-start gap-3">
-              <Avatar className="h-12 w-12">
-                <AvatarImage src={otherUser?.avatar_url || ""} />
-                <AvatarFallback className="bg-primary text-primary-foreground">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative">
+                <Avatar className="h-12 w-12">
+                  <AvatarImage src={otherUser?.avatar_url || ""} />
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                {otherUser?.is_online && (
+                  <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-background" />
+                )}
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
