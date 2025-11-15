@@ -510,11 +510,13 @@ export const ChatWindow = ({ conversationId, userId }: ChatWindowProps) => {
         )}
       </div>
 
-      {/* Quick Replies */}
-      <QuickReplies userId={userId} onSelect={(msg) => setMessage(msg)} />
+      {/* Quick Replies - Only show for first message */}
+      {messages && messages.length === 0 && (
+        <QuickReplies userId={userId} onSelect={(msg) => setMessage(msg)} />
+      )}
 
       {/* Input */}
-      <Card className="p-6 border-t">
+      <Card className="p-6 border-t mb-16 md:mb-0">
         <form onSubmit={handleSend} className="space-y-3">
           <div className="flex gap-2">
             <MediaUpload onUpload={(url) => sendImageMessage.mutate(url)} userId={userId} />
