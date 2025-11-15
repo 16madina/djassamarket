@@ -9,9 +9,26 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { formatPrice } from "@/utils/currency";
 
 const RecentlyViewed = () => {
   const [viewedIds, setViewedIds] = useState<string[]>([]);
+
+  const { data: userProfile } = useQuery({
+    queryKey: ["userProfile"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      
+      const { data } = await supabase
+        .from("profiles")
+        .select("currency")
+        .eq("id", user.id)
+        .maybeSingle();
+      
+      return data;
+    },
+  });
 
   useEffect(() => {
     const stored = localStorage.getItem("recently_viewed");
@@ -90,9 +107,11 @@ const RecentlyViewed = () => {
                   </h3>
                   <p className="font-semibold text-primary text-xs">
                     {listing.price === 0 ? (
-                      <span className="text-green-600">0 FCFA</span>
+                      <span className="text-green-600">
+                        {formatPrice(0, userProfile?.currency || "FCFA")}
+                      </span>
                     ) : (
-                      `${listing.price.toLocaleString()} FCFA`
+                      formatPrice(listing.price, userProfile?.currency || "FCFA")
                     )}
                   </p>
                 </div>

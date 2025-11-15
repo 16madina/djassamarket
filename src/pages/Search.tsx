@@ -13,6 +13,7 @@ import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import BottomNav from "@/components/BottomNav";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { formatPrice } from "@/utils/currency";
 
 const Search = () => {
   const navigate = useNavigate();
@@ -25,6 +26,22 @@ const Search = () => {
     location: searchParams.get("location") || "",
     condition: searchParams.get("condition") || "",
     sortBy: searchParams.get("sortBy") || "recent",
+  });
+
+  const { data: userProfile } = useQuery({
+    queryKey: ["userProfile"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      
+      const { data } = await supabase
+        .from("profiles")
+        .select("currency")
+        .eq("id", user.id)
+        .maybeSingle();
+      
+      return data;
+    },
   });
 
   const { data: categories } = useQuery({
@@ -312,7 +329,7 @@ const Search = () => {
                   {listing.price === 0 ? (
                     <span className="text-green-600">Gratuit</span>
                   ) : (
-                    `${listing.price.toLocaleString()} FCFA`
+                    formatPrice(listing.price, userProfile?.currency || "FCFA")
                   )}
                 </p>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">

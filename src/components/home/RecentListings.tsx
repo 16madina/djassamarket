@@ -8,6 +8,7 @@ import { fr } from "date-fns/locale";
 import { translateCondition } from "@/utils/translations";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { sortListingsByLocation, getLocationPriority, getLocationBadgeColor } from "@/utils/geographicFiltering";
+import { formatPrice } from "@/utils/currency";
 
 const RecentListings = () => {
   const { t, language } = useLanguage();
@@ -20,7 +21,7 @@ const RecentListings = () => {
       
       const { data } = await supabase
         .from("profiles")
-        .select("city, country")
+        .select("city, country, currency")
         .eq("id", user.id)
         .maybeSingle();
       
@@ -110,9 +111,11 @@ const RecentListings = () => {
                   </h3>
                   <p className="font-bold text-primary text-base mb-1">
                     {listing.price === 0 ? (
-                      <span className="text-green-600">0 FCFA</span>
+                      <span className="text-green-600">
+                        {formatPrice(0, userProfile?.currency || "FCFA")}
+                      </span>
                     ) : (
-                      `${listing.price.toLocaleString()} FCFA`
+                      formatPrice(listing.price, userProfile?.currency || "FCFA")
                     )}
                   </p>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">

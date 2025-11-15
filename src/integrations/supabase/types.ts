@@ -431,6 +431,7 @@ export type Database = {
           city: string | null
           country: string | null
           created_at: string
+          currency: string | null
           first_name: string | null
           followers_count: number | null
           full_name: string | null
@@ -458,6 +459,7 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string
+          currency?: string | null
           first_name?: string | null
           followers_count?: number | null
           full_name?: string | null
@@ -485,6 +487,7 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string
+          currency?: string | null
           first_name?: string | null
           followers_count?: number | null
           full_name?: string | null

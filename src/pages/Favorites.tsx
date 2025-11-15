@@ -7,10 +7,27 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import BottomNav from "@/components/BottomNav";
 import { ArrowLeft, Heart } from "lucide-react";
+import { formatPrice } from "@/utils/currency";
 
 const Favorites = () => {
   const navigate = useNavigate();
   const [userId, setUserId] = useState<string | null>(null);
+
+  const { data: userProfile } = useQuery({
+    queryKey: ["userProfile"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      
+      const { data } = await supabase
+        .from("profiles")
+        .select("currency")
+        .eq("id", user.id)
+        .maybeSingle();
+      
+      return data;
+    },
+  });
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -104,7 +121,7 @@ const Favorites = () => {
                         </Button>
                       </div>
                       <p className="text-lg font-bold text-primary mb-1">
-                        {listing.price.toLocaleString()} FCFA
+                        {formatPrice(listing.price, userProfile?.currency || "FCFA")}
                       </p>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Badge variant="secondary" className="text-xs">

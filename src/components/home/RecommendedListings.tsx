@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, MapPin } from "lucide-react";
 import { getLocationPriority, getLocationBadgeColor } from "@/utils/geographicFiltering";
+import { formatPrice } from "@/utils/currency";
 
 const RecommendedListings = () => {
   const navigate = useNavigate();
@@ -26,9 +27,9 @@ const RecommendedListings = () => {
       
       const { data } = await supabase
         .from("profiles")
-        .select("city, country")
+        .select("city, country, currency")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
       
       return data;
     },
@@ -127,7 +128,7 @@ const RecommendedListings = () => {
                   {listing.categories?.name}
                 </p>
                 <p className="text-xl font-bold text-primary">
-                  {listing.price.toLocaleString()} FCFA
+                  {formatPrice(listing.price, userProfile?.currency || "FCFA")}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {listing.location}

@@ -15,6 +15,7 @@ import { fr } from "date-fns/locale";
 import BottomNav from "@/components/BottomNav";
 import { addToRecentlyViewed } from "@/utils/recentlyViewed";
 import { translateCondition } from "@/utils/translations";
+import { formatPrice } from "@/utils/currency";
 import { useEffect } from "react";
 
 const ListingDetail = () => {
@@ -26,6 +27,22 @@ const ListingDetail = () => {
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       return user;
+    },
+  });
+
+  const { data: userProfile } = useQuery({
+    queryKey: ["userProfile"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      
+      const { data } = await supabase
+        .from("profiles")
+        .select("currency")
+        .eq("id", user.id)
+        .maybeSingle();
+      
+      return data;
     },
   });
 
@@ -112,11 +129,12 @@ const ListingDetail = () => {
   const handleShare = async () => {
     if (navigator.share && listing) {
       try {
+        const currency = userProfile?.currency || "FCFA";
         await navigator.share({
           title: listing.title,
           text: listing.price === 0 
             ? `${listing.title} - Gratuit` 
-            : `${listing.title} - ${listing.price.toLocaleString()} FCFA`,
+            : `${listing.title} - ${formatPrice(listing.price, currency)}`,
           url: window.location.href,
         });
       } catch (error) {
@@ -209,7 +227,9 @@ const ListingDetail = () => {
                     {listing.price === 0 ? (
                       <span className="text-green-600">Gratuit</span>
                     ) : (
-                      <span className="text-primary">{listing.price.toLocaleString()} FCFA</span>
+                      <span className="text-primary">
+                        {formatPrice(listing.price, userProfile?.currency || "FCFA")}
+                      </span>
                     )}
                   </div>
                   <Button

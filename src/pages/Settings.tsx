@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -37,6 +38,22 @@ const Settings = () => {
   const { darkMode, toggleDarkMode } = useDarkMode();
   const { language, setLanguage, t } = useLanguage();
 
+  const { data: userProfile } = useQuery({
+    queryKey: ["userProfile", userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      
+      const { data } = await supabase
+        .from("profiles")
+        .select("currency")
+        .eq("id", userId)
+        .maybeSingle();
+      
+      return data;
+    },
+    enabled: !!userId,
+  });
+
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -55,6 +72,21 @@ const Settings = () => {
   const handleLanguageChange = (lang: "fr" | "en") => {
     setLanguage(lang);
     toast.success(lang === "fr" ? "Langue changée en Français" : "Language changed to English");
+  };
+
+  const handleCurrencyChange = async (currency: string) => {
+    if (!userId) return;
+    
+    const { error } = await supabase
+      .from("profiles")
+      .update({ currency })
+      .eq("id", userId);
+    
+    if (error) {
+      toast.error("Erreur lors du changement de devise");
+    } else {
+      toast.success(`Devise changée en ${currency}`);
+    }
   };
 
   const handleShare = async () => {
@@ -267,14 +299,25 @@ const Settings = () => {
                 <DollarSign className="h-5 w-5 text-muted-foreground" />
                 <span className="font-medium">Devise</span>
               </div>
-              <Select defaultValue="fcfa">
+              <p className="text-sm text-muted-foreground">Choisissez votre devise préférée</p>
+              <Select 
+                value={userProfile?.currency || "FCFA"} 
+                onValueChange={handleCurrencyChange}
+                key={userProfile?.currency}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="fcfa">FCFA - Franc CFA</SelectItem>
-                  <SelectItem value="eur">EUR - Euro</SelectItem>
-                  <SelectItem value="usd">USD - Dollar</SelectItem>
+                  <SelectItem value="FCFA">🇧🇯 FCFA - Franc CFA (Zone CEDEAO)</SelectItem>
+                  <SelectItem value="GHS">🇬🇭 GHS - Cedi ghanéen</SelectItem>
+                  <SelectItem value="NGN">🇳🇬 NGN - Naira nigérian</SelectItem>
+                  <SelectItem value="GMD">🇬🇲 GMD - Dalasi gambien</SelectItem>
+                  <SelectItem value="GNF">🇬🇳 GNF - Franc guinéen</SelectItem>
+                  <SelectItem value="LRD">🇱🇷 LRD - Dollar libérien</SelectItem>
+                  <SelectItem value="SLL">🇸🇱 SLL - Leone sierra-léonais</SelectItem>
+                  <SelectItem value="CVE">🇨🇻 CVE - Escudo cap-verdien</SelectItem>
+                  <SelectItem value="MRU">🇲🇷 MRU - Ouguiya mauritanien</SelectItem>
                 </SelectContent>
               </Select>
             </div>
