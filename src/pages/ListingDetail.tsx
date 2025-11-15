@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ImageGallery } from "@/components/listing/ImageGallery";
 import { SellerProfile } from "@/components/listing/SellerProfile";
 import { FavoriteButton } from "@/components/listing/FavoriteButton";
+import LocationMap from "@/components/listing/LocationMap";
 import { ArrowLeft, MapPin, Eye, MessageCircle, Share2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -230,6 +231,7 @@ const ListingDetail = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             <SellerProfile userId={listing.user_id} />
+            <LocationMap location={listing.location} />
           </div>
         </div>
       </div>
