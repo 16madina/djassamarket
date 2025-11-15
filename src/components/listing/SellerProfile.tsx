@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Package, Star, Shield, TrendingUp, Clock, Users } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -134,9 +135,16 @@ export const SellerProfile = ({ userId }: SellerProfileProps) => {
 
         {listings && listings.length > 0 && (
           <div className="space-y-3">
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <Package className="h-4 w-4" />
-              <span>Autres annonces du vendeur</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Package className="h-4 w-4" />
+                <span>Autres annonces du vendeur</span>
+              </div>
+              <Link to={`/seller/${userId}`}>
+                <Button variant="ghost" size="sm">
+                  Voir tout
+                </Button>
+              </Link>
             </div>
             <div className="grid grid-cols-3 gap-2">
               {listings.map((listing) => (
