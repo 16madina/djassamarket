@@ -28,15 +28,15 @@ const Header = ({ isAuthenticated }: HeaderProps) => {
               <span className="hidden sm:inline">Mon profil</span>
             </Button>
           ) : (
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => navigate("/auth")}
-              className="gap-2"
-            >
-              <LogIn className="h-4 w-4" />
-              Se connecter
-            </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => navigate("/auth", { state: { mode: 'login' } })}
+            className="gap-2"
+          >
+            <LogIn className="h-4 w-4" />
+            Se connecter
+          </Button>
           )}
         </nav>
       </div>
