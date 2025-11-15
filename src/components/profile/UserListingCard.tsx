@@ -48,9 +48,9 @@ export const UserListingCard = ({ listing, onUpdate }: UserListingCardProps) => 
 
   return (
     <Card className="overflow-hidden">
-      <div className="flex gap-4 p-4">
+      <div className="flex gap-3 p-3">
         {/* Image */}
-        <div className="relative w-32 h-32 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
+        <div className="relative w-20 h-20 flex-shrink-0 rounded-md overflow-hidden bg-muted">
           {listing.images?.[0] ? (
             <img
               src={listing.images[0]}
@@ -58,31 +58,31 @@ export const UserListingCard = ({ listing, onUpdate }: UserListingCardProps) => 
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
               Pas d'image
             </div>
           )}
           {isSold && (
-            <Badge className="absolute top-2 left-2 bg-yellow-500 text-black">
+            <Badge className="absolute top-1 left-1 bg-yellow-500 text-black text-xs px-1">
               Vendu
             </Badge>
           )}
         </div>
 
         {/* Content */}
-        <div className="flex-1 space-y-2">
-          <h3 className="font-semibold text-lg line-clamp-2">
+        <div className="flex-1 space-y-1">
+          <h3 className="font-semibold text-sm line-clamp-2">
             {listing.title}
           </h3>
-          <p className="text-2xl font-bold text-primary">
+          <p className="text-lg font-bold text-primary">
             {listing.price === 0 ? (
               <span className="text-green-600">Gratuit</span>
             ) : (
               `${listing.price.toLocaleString()} FCFA`
             )}
           </p>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <Badge variant="secondary" className="text-xs">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Badge variant="secondary" className="text-xs py-0">
               {listing.categories?.name}
             </Badge>
             <span>{listing.views || 0} vues</span>
@@ -90,13 +90,14 @@ export const UserListingCard = ({ listing, onUpdate }: UserListingCardProps) => 
         </div>
 
         {/* Actions */}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1">
           <Button
             size="sm"
             variant="outline"
             onClick={() => navigate(`/listing/${listing.id}`)}
+            className="h-7 text-xs px-2"
           >
-            <Edit className="h-4 w-4 mr-1" />
+            <Edit className="h-3 w-3 mr-1" />
             Modifier
           </Button>
           
@@ -104,16 +105,16 @@ export const UserListingCard = ({ listing, onUpdate }: UserListingCardProps) => 
             size="sm"
             variant={isSold ? "default" : "secondary"}
             onClick={handleToggleStatus}
-            className={isSold ? "" : "bg-orange-500 hover:bg-orange-600 text-white"}
+            className={`h-7 text-xs px-2 ${isSold ? "" : "bg-orange-500 hover:bg-orange-600 text-white"}`}
           >
             {isSold ? (
               <>
-                <XCircle className="h-4 w-4 mr-1" />
+                <XCircle className="h-3 w-3 mr-1" />
                 Réactiver
               </>
             ) : (
               <>
-                <CheckCircle className="h-4 w-4 mr-1" />
+                <CheckCircle className="h-3 w-3 mr-1" />
                 Vendu
               </>
             )}
@@ -123,8 +124,9 @@ export const UserListingCard = ({ listing, onUpdate }: UserListingCardProps) => 
             size="sm"
             variant="destructive"
             onClick={handleDelete}
+            className="h-7 text-xs px-2"
           >
-            <Trash2 className="h-4 w-4 mr-1" />
+            <Trash2 className="h-3 w-3 mr-1" />
             Supprimer
           </Button>
         </div>
