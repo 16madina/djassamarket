@@ -26,39 +26,62 @@ const BottomNav = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border shadow-lg">
-      <div className="max-w-screen-xl mx-auto px-4">
-        <div className="flex items-center justify-around h-16">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 pb-safe">
+      {/* Glassmorphism background with gradient */}
+      <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/90 to-background/80 backdrop-blur-xl border-t border-border/50" />
+      
+      <div className="relative max-w-screen-xl mx-auto px-3 py-2">
+        <div className="flex items-center justify-around gap-1">
           {navItems.map(({ to, icon: Icon, label, badge }) => (
             <NavLink
               key={to}
               to={to}
-              className="flex flex-col items-center justify-center flex-1 h-full transition-all duration-300 hover:bg-muted/50"
-              activeClassName="text-primary"
+              className="flex-1"
+              activeClassName=""
             >
               {({ isActive }) => (
-                <>
+                <div
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-2xl transition-all duration-300",
+                    "hover:scale-105 active:scale-95",
+                    isActive
+                      ? "bg-primary text-primary-foreground shadow-warm scale-105"
+                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                  )}
+                >
                   <div className="relative">
-                    <Icon className={cn(
-                      "h-6 w-6 transition-all duration-300",
-                      isActive && "scale-110"
-                    )} />
+                    <Icon
+                      className={cn(
+                        "h-6 w-6 transition-all duration-300",
+                        isActive && "drop-shadow-sm"
+                      )}
+                      strokeWidth={isActive ? 2.5 : 2}
+                    />
                     {badge !== undefined && badge > 0 && (
                       <Badge 
-                        variant="destructive" 
-                        className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs animate-scale-in"
+                        className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-destructive text-destructive-foreground border-2 border-background animate-scale-in shadow-lg"
                       >
                         {badge > 9 ? '9+' : badge}
                       </Badge>
                     )}
                   </div>
-                  <span className="text-xs mt-1">{label}</span>
-                </>
+                  <span
+                    className={cn(
+                      "text-[10px] font-medium transition-all duration-300",
+                      isActive ? "opacity-100 scale-100" : "opacity-70 scale-95"
+                    )}
+                  >
+                    {label}
+                  </span>
+                </div>
               )}
             </NavLink>
           ))}
         </div>
       </div>
+      
+      {/* Bottom safe area padding indicator */}
+      <div className="h-[env(safe-area-inset-bottom)] bg-gradient-to-b from-background/80 to-background/95 backdrop-blur-xl" />
     </nav>
   );
 };
