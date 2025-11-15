@@ -153,20 +153,20 @@ export const PriceOfferCard = ({ messageId, userId, conversationId, listingId }:
 
   return (
     <Card className="bg-primary/5">
-      <CardContent className="p-4 space-y-3">
+      <CardContent className="p-2.5 space-y-2">
         <div className="flex items-center justify-between">
-          <span className="font-semibold">
+          <span className="font-semibold text-sm">
             Offre: {offer.amount.toLocaleString()} FCFA
           </span>
-          <div className="flex items-center gap-2">
-            <Badge variant={offer.status === 'accepted' ? 'default' : 'secondary'}>
+          <div className="flex items-center gap-1.5">
+            <Badge variant={offer.status === 'accepted' ? 'default' : 'secondary'} className="text-xs py-0 h-5">
               {statusLabels[offer.status as keyof typeof statusLabels]}
             </Badge>
             
             <Dialog open={showHistory} onOpenChange={setShowHistory}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <History className="h-4 w-4" />
+                <Button variant="ghost" size="icon" className="h-6 w-6">
+                  <History className="h-3 w-3" />
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-md">
@@ -203,15 +203,15 @@ export const PriceOfferCard = ({ messageId, userId, conversationId, listingId }:
         </div>
         
         {isReceiver && offer.status === 'pending' && (
-          <div className="space-y-2">
-            <div className="flex gap-2">
+          <div className="space-y-1.5">
+            <div className="flex gap-1.5">
               <Button
                 size="sm"
                 onClick={() => updateOffer.mutate('accepted')}
                 disabled={updateOffer.isPending}
-                className="flex-1"
+                className="flex-1 h-7 text-xs"
               >
-                <Check className="h-4 w-4 mr-1" />
+                <Check className="h-3 w-3 mr-1" />
                 Accepter
               </Button>
               <Button
@@ -219,9 +219,9 @@ export const PriceOfferCard = ({ messageId, userId, conversationId, listingId }:
                 variant="outline"
                 onClick={() => updateOffer.mutate('rejected')}
                 disabled={updateOffer.isPending}
-                className="flex-1"
+                className="flex-1 h-7 text-xs"
               >
-                <X className="h-4 w-4 mr-1" />
+                <X className="h-3 w-3 mr-1" />
                 Refuser
               </Button>
             </div>
@@ -231,25 +231,26 @@ export const PriceOfferCard = ({ messageId, userId, conversationId, listingId }:
                 size="sm"
                 variant="secondary"
                 onClick={() => setShowCounterOffer(true)}
-                className="w-full"
+                className="w-full h-7 text-xs"
               >
-                <ArrowLeftRight className="h-4 w-4 mr-1" />
-                Faire une contre-offre
+                <ArrowLeftRight className="h-3 w-3 mr-1" />
+                Contre-offre
               </Button>
             ) : (
-              <div className="space-y-2 p-3 bg-background rounded-lg border">
+              <div className="space-y-1.5 p-2 bg-background rounded-lg border">
                 <Input
                   type="number"
                   placeholder="Votre contre-offre..."
                   value={counterOfferAmount}
                   onChange={(e) => setCounterOfferAmount(e.target.value)}
+                  className="h-7 text-xs"
                 />
-                <div className="flex gap-2">
+                <div className="flex gap-1.5">
                   <Button
                     size="sm"
                     onClick={() => createCounterOffer.mutate()}
                     disabled={createCounterOffer.isPending || !counterOfferAmount}
-                    className="flex-1"
+                    className="flex-1 h-7 text-xs"
                   >
                     Envoyer
                   </Button>
@@ -260,7 +261,7 @@ export const PriceOfferCard = ({ messageId, userId, conversationId, listingId }:
                       setShowCounterOffer(false);
                       setCounterOfferAmount('');
                     }}
-                    className="flex-1"
+                    className="flex-1 h-7 text-xs"
                   >
                     Annuler
                   </Button>
@@ -271,7 +272,7 @@ export const PriceOfferCard = ({ messageId, userId, conversationId, listingId }:
         )}
         
         {offer.status === 'counter' && (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Une contre-offre a été faite
           </p>
         )}

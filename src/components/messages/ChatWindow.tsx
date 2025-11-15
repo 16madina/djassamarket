@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ export const ChatWindow = ({ conversationId, userId }: ChatWindowProps) => {
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   
   // Enable presence tracking
   usePresence(userId);
@@ -388,7 +390,10 @@ export const ChatWindow = ({ conversationId, userId }: ChatWindowProps) => {
         </div>
         
         {/* Listing Info */}
-        <div className="mt-3 p-2 bg-muted/30 rounded-lg flex items-center gap-2">
+        <div 
+          className="mt-3 p-2 bg-muted/30 rounded-lg flex items-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors active:scale-[0.98]"
+          onClick={() => navigate(`/listing/${conversation.listing_id}`)}
+        >
           {conversation.listing?.images?.[0] && (
             <img 
               src={conversation.listing.images[0]} 
