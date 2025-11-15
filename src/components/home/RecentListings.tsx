@@ -64,7 +64,11 @@ const RecentListings = () => {
                     {listing.title}
                   </h3>
                   <p className="text-2xl font-bold text-primary mb-2">
-                    {listing.price.toLocaleString()} FCFA
+                    {listing.price === 0 ? (
+                      <span className="text-green-600">Gratuit</span>
+                    ) : (
+                      `${listing.price.toLocaleString()} FCFA`
+                    )}
                   </p>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <MapPin className="h-4 w-4" />

@@ -103,7 +103,9 @@ const ListingDetail = () => {
       try {
         await navigator.share({
           title: listing.title,
-          text: `${listing.title} - ${listing.price.toLocaleString()} FCFA`,
+          text: listing.price === 0 
+            ? `${listing.title} - Gratuit` 
+            : `${listing.title} - ${listing.price.toLocaleString()} FCFA`,
           url: window.location.href,
         });
       } catch (error) {
@@ -198,8 +200,12 @@ const ListingDetail = () => {
                 </div>
 
                 <div className="pt-4 border-t">
-                  <div className="text-3xl font-bold text-primary mb-4">
-                    {listing.price.toLocaleString()} FCFA
+                  <div className="text-3xl font-bold mb-4">
+                    {listing.price === 0 ? (
+                      <span className="text-green-600">Gratuit</span>
+                    ) : (
+                      <span className="text-primary">{listing.price.toLocaleString()} FCFA</span>
+                    )}
                   </div>
                   <Button
                     size="lg"

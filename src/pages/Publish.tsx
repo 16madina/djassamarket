@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ImageUploader } from "@/components/listing/ImageUploader";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +27,7 @@ const Publish = () => {
     location: "",
     condition: "new",
     images: [] as string[],
+    isFree: false,
   });
 
   const { data: user } = useQuery({
@@ -39,6 +41,32 @@ const Publish = () => {
       return user;
     },
   });
+
+  // Fetch user profile to get country and city
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("country, city")
+        .eq("id", user.id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  // Auto-fill location when profile is loaded
+  useEffect(() => {
+    if (profile && profile.city && profile.country && !formData.location) {
+      setFormData(prev => ({
+        ...prev,
+        location: `${profile.city}, ${profile.country}`
+      }));
+    }
+  }, [profile]);
 
   const { data: categories } = useQuery({
     queryKey: ["categories"],
@@ -80,7 +108,7 @@ const Publish = () => {
         user_id: user.id,
         title: formData.title,
         description: formData.description,
-        price: parseFloat(formData.price),
+        price: formData.isFree ? 0 : parseFloat(formData.price),
         category_id: formData.category_id,
         location: formData.location,
         condition: formData.condition,
@@ -189,20 +217,35 @@ const Publish = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="price">Prix (FCFA) *</Label>
+                  <Label htmlFor="price">Prix (FCFA) {!formData.isFree && "*"}</Label>
                   <Input
                     id="price"
                     type="number"
-                    value={formData.price}
+                    value={formData.isFree ? "0" : formData.price}
                     onChange={(e) =>
                       setFormData({ ...formData, price: e.target.value })
                     }
                     placeholder="50000"
-                    required
+                    required={!formData.isFree}
                     min="0"
                     step="1000"
+                    disabled={formData.isFree}
+                    className={formData.isFree ? "bg-muted" : ""}
                   />
                 </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="isFree"
+                  checked={formData.isFree}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, isFree: checked as boolean, price: checked ? "0" : "" })
+                  }
+                />
+                <Label htmlFor="isFree" className="cursor-pointer font-normal">
+                  Article gratuit / À donner
+                </Label>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
