@@ -11,6 +11,7 @@ import Messages from "./pages/Messages";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import ListingDetail from "./pages/ListingDetail";
+import SellerPublicProfile from "./pages/SellerPublicProfile";
 import Search from "./pages/Search";
 import NotFound from "./pages/NotFound";
 
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/search" element={<Search />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/listing/:id" element={<ListingDetail />} />
+          <Route path="/seller/:id" element={<SellerPublicProfile />} />
           <Route path="/publish" element={<Publish />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/profile" element={<Profile />} />
