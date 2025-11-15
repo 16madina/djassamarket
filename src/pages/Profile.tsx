@@ -15,23 +15,47 @@ import { LogOut, Edit, Settings, Shield, Bell, Share2, ArrowLeft, Users, Star } 
 const Profile = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         navigate("/auth");
-      } else {
-        setUser(session.user);
+        return;
       }
-    });
+      setUser(session.user);
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+      // Check if user is admin
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      setIsAdmin(!!roles);
+    };
+
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!session) {
         navigate("/auth");
       } else {
         setUser(session.user);
+        // Check admin status on auth state change
+        setTimeout(async () => {
+          if (session?.user) {
+            const { data: roles } = await supabase
+              .from("user_roles")
+              .select("role")
+              .eq("user_id", session.user.id)
+              .eq("role", "admin")
+              .maybeSingle();
+            setIsAdmin(!!roles);
+          }
+        }, 0);
       }
     });
 
@@ -207,14 +231,17 @@ const Profile = () => {
               </Button>
             </div>
 
-            <Button 
-              className="w-full bg-gradient-to-r from-orange-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 text-white"
-            >
-              <Shield className="h-4 w-4 mr-2" />
-              Panneau d'administration
-            </Button>
+            {isAdmin && (
+              <Button 
+                className="w-full bg-gradient-to-r from-orange-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 text-white"
+                onClick={() => navigate("/admin")}
+              >
+                <Shield className="h-4 w-4 mr-2" />
+                Panneau d'administration
+              </Button>
+            )}
 
-            <Button 
+            <Button
               variant="outline" 
               className="w-full"
               onClick={handleLogout}
