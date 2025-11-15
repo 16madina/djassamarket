@@ -31,7 +31,9 @@ const Admin = () => {
   const [listingSearch, setListingSearch] = useState("");
   const [listingStatusFilter, setListingStatusFilter] = useState<string>("all");
   const [listingCategoryFilter, setListingCategoryFilter] = useState<string>("all");
+  const [reportSearch, setReportSearch] = useState("");
   const [reportStatusFilter, setReportStatusFilter] = useState<string>("all");
+  const [reportReasonFilter, setReportReasonFilter] = useState<string>("all");
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -187,9 +189,21 @@ const Admin = () => {
     if (!reports) return [];
     
     return reports.filter(report => {
-      return reportStatusFilter === "all" || report.status === reportStatusFilter;
+      // Status filter
+      const matchesStatus = reportStatusFilter === "all" || report.status === reportStatusFilter;
+      
+      // Reason filter
+      const matchesReason = reportReasonFilter === "all" || report.reason === reportReasonFilter;
+      
+      // Search filter (by listing title or reporter name)
+      const searchLower = reportSearch.toLowerCase();
+      const matchesSearch = reportSearch === "" || 
+        report.listings?.title?.toLowerCase().includes(searchLower) ||
+        report.reporter_profile?.full_name?.toLowerCase().includes(searchLower);
+      
+      return matchesStatus && matchesReason && matchesSearch;
     });
-  }, [reports, reportStatusFilter]);
+  }, [reports, reportStatusFilter, reportReasonFilter, reportSearch]);
 
   const handleBanUser = async (userId: string) => {
     const { error } = await supabase
@@ -658,9 +672,18 @@ const Admin = () => {
             {/* Filters */}
             <Card>
               <CardContent className="pt-6">
-                <div className="flex gap-3">
+                <div className="flex flex-col md:flex-row gap-3">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Rechercher par titre ou signaleur..."
+                      value={reportSearch}
+                      onChange={(e) => setReportSearch(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
                   <Select value={reportStatusFilter} onValueChange={setReportStatusFilter}>
-                    <SelectTrigger className="w-full md:w-64">
+                    <SelectTrigger className="w-full md:w-48">
                       <SelectValue placeholder="Statut" />
                     </SelectTrigger>
                     <SelectContent>
@@ -668,6 +691,20 @@ const Admin = () => {
                       <SelectItem value="pending">En attente</SelectItem>
                       <SelectItem value="resolved">Résolus</SelectItem>
                       <SelectItem value="dismissed">Rejetés</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={reportReasonFilter} onValueChange={setReportReasonFilter}>
+                    <SelectTrigger className="w-full md:w-48">
+                      <SelectValue placeholder="Raison" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Toutes</SelectItem>
+                      <SelectItem value="inappropriate">Inapproprié</SelectItem>
+                      <SelectItem value="scam">Arnaque</SelectItem>
+                      <SelectItem value="spam">Spam</SelectItem>
+                      <SelectItem value="fake">Contrefait</SelectItem>
+                      <SelectItem value="misleading">Trompeur</SelectItem>
+                      <SelectItem value="other">Autre</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -683,22 +720,22 @@ const Admin = () => {
                   <p className="text-center text-muted-foreground py-8">Aucun signalement trouvé</p>
                 ) : (
                   filteredReports.map((report) => (
-                    <Card key={report.id} className="p-4">
-                    <div className="flex gap-4">
+                    <Card key={report.id} className="p-3">
+                    <div className="flex gap-3">
                       <img
                         src={report.listings?.images?.[0] || "/placeholder.svg"}
                         alt={report.listings?.title}
-                        className="w-24 h-24 object-cover rounded-md"
+                        className="w-16 h-16 object-cover rounded-md"
                       />
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="font-semibold">{report.listings?.title}</h3>
-                            <p className="text-lg font-bold text-primary">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-sm truncate">{report.listings?.title}</h3>
+                            <p className="text-sm font-bold text-primary">
                               {report.listings?.price > 0 ? `${report.listings.price.toLocaleString()} FCFA` : "Gratuit"}
                             </p>
-                            <div className="flex gap-2 mt-2">
-                              <Badge variant={
+                            <div className="flex gap-1 mt-1 flex-wrap">
+                              <Badge className="text-xs py-0" variant={
                                 report.status === "resolved" ? "default" :
                                 report.status === "dismissed" ? "secondary" :
                                 report.status === "reviewing" ? "outline" :
@@ -709,7 +746,7 @@ const Admin = () => {
                                  report.status === "reviewing" ? "En cours" :
                                  "En attente"}
                               </Badge>
-                              <Badge variant="outline">
+                              <Badge className="text-xs py-0" variant="outline">
                                 {report.reason === "inappropriate" ? "Contenu inapproprié" :
                                  report.reason === "scam" ? "Arnaque" :
                                  report.reason === "spam" ? "Spam" :
@@ -718,20 +755,21 @@ const Admin = () => {
                                  "Autre"}
                               </Badge>
                             </div>
-                            <p className="text-sm text-muted-foreground mt-2">
+                            <p className="text-xs text-muted-foreground mt-1">
                               Signalé par: {report.reporter_profile?.full_name || "Utilisateur"}
                             </p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xs text-muted-foreground">
                               {new Date(report.created_at).toLocaleDateString()} à {new Date(report.created_at).toLocaleTimeString()}
                             </p>
-                            <div className="mt-2 p-2 bg-muted rounded-md">
-                              <p className="text-sm"><strong>Détails:</strong> {report.description}</p>
+                            <div className="mt-1 p-2 bg-muted rounded-md">
+                              <p className="text-xs"><strong>Détails:</strong> {report.description}</p>
                             </div>
                           </div>
-                          <div className="flex flex-col gap-2">
+                          <div className="flex flex-col gap-1 ml-2">
                             <Button
                               size="sm"
                               variant="outline"
+                              className="h-8 px-2 text-xs"
                               onClick={() => navigate(`/listing/${report.listing_id}`)}
                             >
                               <Eye className="h-3 w-3 mr-1" />
@@ -742,6 +780,7 @@ const Admin = () => {
                                 <Button
                                   size="sm"
                                   variant="default"
+                                  className="h-8 px-2 text-xs"
                                   onClick={() => handleResolveReport(report.id)}
                                 >
                                   <CheckCircle className="h-3 w-3 mr-1" />
@@ -749,7 +788,7 @@ const Admin = () => {
                                 </Button>
                                 <Dialog>
                                   <DialogTrigger asChild>
-                                    <Button size="sm" variant="outline">
+                                    <Button size="sm" variant="outline" className="h-8 px-2 text-xs">
                                       <XCircle className="h-3 w-3 mr-1" />
                                       Rejeter
                                     </Button>
