@@ -32,6 +32,7 @@ const RecentListings = () => {
   const { data: listings } = useQuery({
     queryKey: ["recent-listings", userProfile?.city, userProfile?.country],
     queryFn: async () => {
+      console.log('🔍 Fetching listings with userProfile:', userProfile);
       const { data, error } = await supabase
         .from("listings")
         .select(`
@@ -42,11 +43,17 @@ const RecentListings = () => {
         .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(20);
+      
+      console.log('📦 Raw listings data:', data);
+      console.log('❌ Error:', error);
+      
       if (error) throw error;
       
       // Trier par priorité géographique si l'utilisateur a un profil
       if (userProfile?.city || userProfile?.country) {
-        return sortListingsByLocation(data, userProfile.city, userProfile.country);
+        const sorted = sortListingsByLocation(data, userProfile.city, userProfile.country);
+        console.log('🗺️ Sorted listings:', sorted);
+        return sorted;
       }
       
       return data;
@@ -75,6 +82,14 @@ const RecentListings = () => {
   const hasLocalListings = localListings.length > 0;
   const hasDistantListings = distantListings.length > 0;
   const hasUserLocation = !!(userProfile?.city || userProfile?.country);
+
+  console.log('📊 Listings stats:', {
+    total: listings?.length,
+    local: localListings.length,
+    distant: distantListings.length,
+    hasUserLocation,
+    userProfile
+  });
 
 
   // Fonction de rendu pour une carte d'annonce
