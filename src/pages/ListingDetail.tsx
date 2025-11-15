@@ -34,7 +34,7 @@ const ListingDetail = () => {
       if (error) throw error;
 
       // Increment views
-      await supabase.rpc("increment_listing_views", { listing_id: id });
+      await supabase.rpc("increment_listing_views" as any, { listing_id: id });
 
       return data;
     },
