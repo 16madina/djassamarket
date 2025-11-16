@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,6 +12,46 @@ import { formatPriceWithConversion } from "@/utils/currency";
 
 const RecentListings = () => {
   const { t, language } = useLanguage();
+  const [guestLocation, setGuestLocation] = useState<{ city: string | null; country: string | null }>(() => {
+    // Récupérer la localisation stockée
+    const stored = localStorage.getItem('guestLocation');
+    return stored ? JSON.parse(stored) : { city: null, country: null };
+  });
+
+  // Détecter automatiquement la localisation pour les visiteurs
+  useEffect(() => {
+    // Si déjà détectée, ne pas redemander
+    if (guestLocation.city || guestLocation.country) return;
+
+    // Utiliser l'API de géolocalisation du navigateur
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            // Utiliser une API de reverse geocoding (OpenStreetMap Nominatim)
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${position.coords.latitude}&lon=${position.coords.longitude}&format=json`
+            );
+            const data = await response.json();
+            
+            const location = {
+              city: data.address?.city || data.address?.town || data.address?.village || null,
+              country: data.address?.country || null
+            };
+            
+            setGuestLocation(location);
+            localStorage.setItem('guestLocation', JSON.stringify(location));
+            console.log('📍 Guest location detected:', location);
+          } catch (error) {
+            console.error('Error fetching location details:', error);
+          }
+        },
+        (error) => {
+          console.log('Geolocation permission denied or not available:', error);
+        }
+      );
+    }
+  }, [guestLocation]);
   
   // Vérifier d'abord si l'utilisateur est authentifié
   const { data: session } = useQuery({
@@ -61,7 +101,7 @@ const RecentListings = () => {
   });
   
   const { data: listings, isLoading } = useQuery({
-    queryKey: ["recent-listings", userProfile?.city, userProfile?.country],
+    queryKey: ["recent-listings", userProfile?.city, userProfile?.country, guestLocation.city, guestLocation.country],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("listings")
@@ -76,9 +116,12 @@ const RecentListings = () => {
       
       if (error) throw error;
       
-      // Trier par priorité géographique si l'utilisateur a un profil
-      if (userProfile?.city || userProfile?.country) {
-        return sortListingsByLocation(data, userProfile.city, userProfile.country);
+      // Trier par priorité géographique - utiliser le profil si disponible, sinon la localisation invité
+      const city = userProfile?.city || guestLocation.city;
+      const country = userProfile?.country || guestLocation.country;
+      
+      if (city || country) {
+        return sortListingsByLocation(data, city, country);
       }
       
       return data;
@@ -86,23 +129,25 @@ const RecentListings = () => {
     staleTime: 1000 * 60 * 5, // Cache pendant 5 minutes
   });
 
-  // RÈGLE : Priorité géographique pour utilisateurs authentifiés
-  // - Si NON authentifié : afficher TOUS les listings (pas de filtre)
-  // - Si authentifié : filtre strict (même ville ou même pays uniquement)
+  // RÈGLE : Priorité géographique pour tous les utilisateurs (authentifiés ou non)
+  // - Si localisation disponible (profil ou détection auto) : filtrer par région
+  // - Sinon : afficher tous les listings
   const isAuthenticated = !!session?.user;
+  const userCity = userProfile?.city || guestLocation.city;
+  const userCountry = userProfile?.country || guestLocation.country;
   
-  const displayedListings = !isAuthenticated 
-    ? listings || [] // Utilisateur non connecté : afficher tous les listings
-    : listings?.filter(listing => {
+  const displayedListings = (userCity || userCountry)
+    ? listings?.filter(listing => {
         const locationInfo = getLocationPriority(
           listing.location,
-          userProfile?.city || null,
-          userProfile?.country || null
+          userCity || null,
+          userCountry || null
         );
-        console.log('🏠 Listing:', listing.title, '| Location:', listing.location, '| User:', userProfile?.city, userProfile?.country, '| Priority:', locationInfo.priority);
-        // STRICTEMENT même ville ou même pays - AUCUNE exception
+        console.log('🏠 Listing:', listing.title, '| Location:', listing.location, '| User:', userCity, userCountry, '| Priority:', locationInfo.priority);
+        // Filtrer par même ville ou même pays
         return locationInfo.priority === 'same-city' || locationInfo.priority === 'same-country';
-      }) || [];
+      }) || []
+    : listings || []; // Pas de localisation disponible : afficher tout
 
   console.log('📊 Auth:', isAuthenticated, '| Total listings:', listings?.length, '| Displayed listings:', displayedListings.length, '| User location:', userProfile?.city, userProfile?.country);
 
