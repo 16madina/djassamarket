@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { LogIn, User, Moon, Sun } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { SystemNotifications } from "@/components/notifications/SystemNotifications";
+import djassaLogo from "@/assets/djassa-header-logo.jpeg";
 
 interface HeaderProps {
   isAuthenticated: boolean;
@@ -16,10 +17,11 @@ const Header = ({ isAuthenticated }: HeaderProps) => {
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold text-primary flex items-baseline gap-1 cursor-pointer transition-all duration-300 hover:scale-105">
-            DJASSA
-            <span className="text-lg font-pacifico text-primary/80">Market</span>
-          </h1>
+          <img 
+            src={djassaLogo} 
+            alt="DJASSA" 
+            className="h-8 cursor-pointer transition-all duration-300 hover:scale-105"
+          />
         </div>
 
         <nav className="flex items-center gap-3">
