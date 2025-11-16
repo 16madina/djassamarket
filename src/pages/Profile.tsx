@@ -315,8 +315,8 @@ const Profile = () => {
               <CheckCircle2 className="h-5 w-5 text-white" />
             </div>
           ) : (
-            <div className="absolute bottom-1 right-1 bg-red-500 rounded-full p-1 border-2 border-background">
-              <X className="h-5 w-5 text-white" />
+            <div className="absolute bottom-1 right-1 bg-muted rounded-full px-2 py-1 border-2 border-background">
+              <span className="text-[10px] text-muted-foreground font-medium">Non vérifié</span>
             </div>
           )}
         </div>

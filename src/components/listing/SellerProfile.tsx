@@ -75,8 +75,8 @@ export const SellerProfile = ({ userId }: SellerProfileProps) => {
                 <CheckCircle className="h-3 w-3 text-white" />
               </div>
             ) : (
-              <div className="absolute bottom-0 right-0 h-5 w-5 rounded-full bg-red-500 flex items-center justify-center border-2 border-background">
-                <X className="h-3 w-3 text-white" />
+              <div className="absolute bottom-0 right-0 bg-muted rounded-full px-1.5 py-0.5 border-2 border-background">
+                <span className="text-[8px] text-muted-foreground font-medium whitespace-nowrap">Non vérifié</span>
               </div>
             )}
           </div>
