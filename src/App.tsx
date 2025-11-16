@@ -3,11 +3,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { usePushNotifications } from "@/hooks/usePushNotifications";
-import { useFavoriteNotifications } from "@/hooks/useFavoriteNotifications";
-import { LanguageProvider } from "@/contexts/LanguageContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Categories from "./pages/Categories";
@@ -33,63 +28,39 @@ import Privacy from "./pages/settings/Privacy";
 
 const queryClient = new QueryClient();
 
-const AppContent = () => {
-  const [userId, setUserId] = useState<string | undefined>();
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUserId(user?.id);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUserId(session?.user?.id);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  usePushNotifications(userId);
-  useFavoriteNotifications(userId);
-
-  return (
-    <Routes>
-      <Route path="/" element={<Index />} />
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/edit-profile" element={<EditProfile />} />
-      <Route path="/categories" element={<Categories />} />
-      <Route path="/category/:categorySlug" element={<CategoryDetail />} />
-      <Route path="/publish" element={<Publish />} />
-      <Route path="/search" element={<Search />} />
-      <Route path="/listing/:id" element={<ListingDetail />} />
-      <Route path="/messages" element={<Messages />} />
-      <Route path="/favorites" element={<Favorites />} />
-      <Route path="/seller/:sellerId" element={<SellerPublicProfile />} />
-      <Route path="/settings" element={<Settings />} />
-      <Route path="/settings/account" element={<AccountManagement />} />
-      <Route path="/settings/faq" element={<FAQ />} />
-      <Route path="/settings/support" element={<Support />} />
-      <Route path="/settings/report" element={<Report />} />
-      <Route path="/settings/terms" element={<Terms />} />
-      <Route path="/settings/privacy" element={<Privacy />} />
-      <Route path="/help" element={<Help />} />
-      <Route path="/admin" element={<Admin />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  );
-};
-
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <LanguageProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
-      </TooltipProvider>
-    </LanguageProvider>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/categories" element={<Categories />} />
+          <Route path="/categories/:slug" element={<CategoryDetail />} />
+          <Route path="/listing/:id" element={<ListingDetail />} />
+          <Route path="/seller/:id" element={<SellerPublicProfile />} />
+          <Route path="/publish" element={<Publish />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/edit-profile" element={<EditProfile />} />
+          <Route path="/favorites" element={<Favorites />} />
+          <Route path="/help" element={<Help />} />
+          <Route path="/account-management" element={<AccountManagement />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/settings/faq" element={<FAQ />} />
+          <Route path="/settings/support" element={<Support />} />
+          <Route path="/settings/report" element={<Report />} />
+          <Route path="/settings/terms" element={<Terms />} />
+          <Route path="/settings/privacy" element={<Privacy />} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
   </QueryClientProvider>
 );
 

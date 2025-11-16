@@ -13,7 +13,6 @@ import { PrivacyPolicy } from "@/components/auth/PrivacyPolicy";
 import { TermsConditions } from "@/components/auth/TermsConditions";
 import { westAfricanCountries } from "@/data/westAfricaData";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
-import BottomNav from "@/components/BottomNav";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -78,7 +77,7 @@ const Auth = () => {
 
         toast({
           title: "Connexion réussie",
-          description: "Bienvenue sur ReVenD !",
+          description: "Bienvenue sur Revivo !",
         });
         navigate("/");
       } else {
@@ -152,7 +151,7 @@ const Auth = () => {
 
         toast({
           title: "Compte créé !",
-          description: "Votre compte a été créé avec succès. Bienvenue sur ReVenD !",
+          description: "Votre compte a été créé avec succès. Bienvenue sur Revivo !",
         });
         navigate("/");
       }
@@ -187,8 +186,8 @@ const Auth = () => {
             </CardTitle>
             <CardDescription>
               {isLogin
-                ? "Connectez-vous à votre compte ReVenD"
-                : "Rejoignez la communauté ReVenD"}
+                ? "Connectez-vous à votre compte Revivo"
+                : "Rejoignez la communauté Revivo"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -463,7 +462,6 @@ const Auth = () => {
       {/* Dialogs */}
       <PrivacyPolicy open={showPrivacyPolicy} onOpenChange={setShowPrivacyPolicy} />
       <TermsConditions open={showTermsConditions} onOpenChange={setShowTermsConditions} />
-      <BottomNav />
     </div>
   );
 };

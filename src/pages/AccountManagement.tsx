@@ -8,7 +8,6 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { DeleteAccountDialog } from "@/components/settings/DeleteAccountDialog";
-import BottomNav from "@/components/BottomNav";
 
 const AccountManagement = () => {
   const navigate = useNavigate();
@@ -188,7 +187,6 @@ const AccountManagement = () => {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
       />
-      <BottomNav />
     </div>
   );
 };

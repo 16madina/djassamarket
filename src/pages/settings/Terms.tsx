@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Calendar } from "lucide-react";
-import BottomNav from "@/components/BottomNav";
 
 const Terms = () => {
   const navigate = useNavigate();
@@ -122,7 +121,6 @@ const Terms = () => {
           </CardContent>
         </Card>
       </div>
-      <BottomNav />
     </div>
   );
 };

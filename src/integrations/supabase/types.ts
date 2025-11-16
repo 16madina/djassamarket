@@ -517,7 +517,6 @@ export type Database = {
           last_seen: string | null
           location: string | null
           phone: string | null
-          push_token: string | null
           rating_average: number | null
           rating_count: number | null
           response_rate: number | null
@@ -546,7 +545,6 @@ export type Database = {
           last_seen?: string | null
           location?: string | null
           phone?: string | null
-          push_token?: string | null
           rating_average?: number | null
           rating_count?: number | null
           response_rate?: number | null
@@ -575,7 +573,6 @@ export type Database = {
           last_seen?: string | null
           location?: string | null
           phone?: string | null
-          push_token?: string | null
           rating_average?: number | null
           rating_count?: number | null
           response_rate?: number | null

@@ -8,7 +8,6 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { ProfileImageUpload } from "@/components/auth/ProfileImageUpload";
-import BottomNav from "@/components/BottomNav";
 
 const EditProfile = () => {
   const navigate = useNavigate();
@@ -180,7 +179,6 @@ const EditProfile = () => {
           </form>
         </Card>
       </div>
-      <BottomNav />
     </div>
   );
 };
