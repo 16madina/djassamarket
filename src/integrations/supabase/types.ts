@@ -212,6 +212,9 @@ export type Database = {
           condition: string | null
           created_at: string
           currency: string | null
+          delivery_available: boolean | null
+          delivery_price: number | null
+          delivery_zone: string | null
           description: string
           id: string
           images: string[] | null
@@ -220,18 +223,24 @@ export type Database = {
           moderated_by: string | null
           moderation_notes: string | null
           moderation_status: string | null
+          phone: string | null
+          phone_visible: boolean | null
           price: number
           status: string | null
           title: string
           updated_at: string
           user_id: string
           views: number | null
+          whatsapp_available: boolean | null
         }
         Insert: {
           category_id: string
           condition?: string | null
           created_at?: string
           currency?: string | null
+          delivery_available?: boolean | null
+          delivery_price?: number | null
+          delivery_zone?: string | null
           description: string
           id?: string
           images?: string[] | null
@@ -240,18 +249,24 @@ export type Database = {
           moderated_by?: string | null
           moderation_notes?: string | null
           moderation_status?: string | null
+          phone?: string | null
+          phone_visible?: boolean | null
           price: number
           status?: string | null
           title: string
           updated_at?: string
           user_id: string
           views?: number | null
+          whatsapp_available?: boolean | null
         }
         Update: {
           category_id?: string
           condition?: string | null
           created_at?: string
           currency?: string | null
+          delivery_available?: boolean | null
+          delivery_price?: number | null
+          delivery_zone?: string | null
           description?: string
           id?: string
           images?: string[] | null
@@ -260,12 +275,15 @@ export type Database = {
           moderated_by?: string | null
           moderation_notes?: string | null
           moderation_status?: string | null
+          phone?: string | null
+          phone_visible?: boolean | null
           price?: number
           status?: string | null
           title?: string
           updated_at?: string
           user_id?: string
           views?: number | null
+          whatsapp_available?: boolean | null
         }
         Relationships: [
           {

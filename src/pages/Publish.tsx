@@ -19,16 +19,26 @@ const Publish = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [parentCategoryId, setParentCategoryId] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     price: "",
     category_id: "",
+    subcategory_id: "",
     location: "",
     condition: "new",
     images: [] as string[],
     isFree: false,
+    delivery_available: false,
+    delivery_price: "",
+    delivery_zone: "",
+    phone: "",
+    phone_visible: false,
+    whatsapp_available: false,
   });
 
   const { data: user } = useQuery({
@@ -43,14 +53,14 @@ const Publish = () => {
     },
   });
 
-  // Fetch user profile to get country and city
+  // Fetch user profile to get country, city and phone
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
       if (!user) return null;
       const { data, error } = await supabase
         .from("profiles")
-        .select("country, city")
+        .select("country, city, phone")
         .eq("id", user.id)
         .single();
       if (error) throw error;
@@ -59,15 +69,56 @@ const Publish = () => {
     enabled: !!user,
   });
 
-  // Auto-fill location when profile is loaded
+  // Load draft from localStorage on mount
+  useEffect(() => {
+    const savedDraft = localStorage.getItem('listing_draft');
+    if (savedDraft) {
+      try {
+        const draft = JSON.parse(savedDraft);
+        const draftAge = Date.now() - draft.timestamp;
+        // Only load draft if less than 24 hours old
+        if (draftAge < 24 * 60 * 60 * 1000) {
+          setFormData(draft.data);
+          setParentCategoryId(draft.parentCategoryId || "");
+          toast({
+            title: "Brouillon restauré",
+            description: "Votre brouillon a été chargé",
+          });
+        } else {
+          localStorage.removeItem('listing_draft');
+        }
+      } catch (e) {
+        console.error("Failed to load draft:", e);
+      }
+    }
+  }, []);
+
+  // Auto-fill location and phone when profile is loaded
   useEffect(() => {
     if (profile && profile.city && profile.country && !formData.location) {
       setFormData(prev => ({
         ...prev,
-        location: `${profile.city}, ${profile.country}`
+        location: `${profile.city}, ${profile.country}`,
+        phone: profile.phone || ""
       }));
     }
   }, [profile]);
+
+  // Auto-save draft every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (formData.title || formData.description) {
+        localStorage.setItem('listing_draft', JSON.stringify({
+          data: formData,
+          parentCategoryId,
+          timestamp: Date.now()
+        }));
+        setLastSaved(new Date());
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [formData, parentCategoryId]);
 
   // Real-time validation
   const validateField = (name: string, value: string) => {
@@ -126,17 +177,44 @@ const Publish = () => {
     validateField(name, value);
   };
 
-  const { data: categories } = useQuery({
-    queryKey: ["categories"],
+  // Fetch parent categories
+  const { data: parentCategories } = useQuery({
+    queryKey: ["parent-categories"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
         .select("*")
+        .is("parent_id", null)
         .order("name");
       if (error) throw error;
       return data;
     },
   });
+
+  // Fetch subcategories based on parent selection
+  const { data: subcategories } = useQuery({
+    queryKey: ["subcategories", parentCategoryId],
+    queryFn: async () => {
+      if (!parentCategoryId) return [];
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("parent_id", parentCategoryId)
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!parentCategoryId,
+  });
+
+  const handleParentCategoryChange = (value: string) => {
+    setParentCategoryId(value);
+    setFormData(prev => ({ ...prev, category_id: value, subcategory_id: "" }));
+  };
+
+  const handleSubcategoryChange = (value: string) => {
+    setFormData(prev => ({ ...prev, category_id: value, subcategory_id: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,6 +223,15 @@ const Publish = () => {
       toast({
         title: "Erreur",
         description: "Vous devez être connecté pour publier",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!acceptedTerms) {
+      toast({
+        title: "Conditions requises",
+        description: "Vous devez accepter les conditions d'utilisation",
         variant: "destructive",
       });
       return;
@@ -183,14 +270,23 @@ const Publish = () => {
         title: formData.title,
         description: formData.description,
         price: formData.isFree ? 0 : parseFloat(formData.price),
-        category_id: formData.category_id,
+        category_id: formData.subcategory_id || formData.category_id,
         location: formData.location,
         condition: formData.condition,
         images: formData.images,
         status: "active",
+        delivery_available: formData.delivery_available,
+        delivery_price: formData.delivery_available && formData.delivery_price ? parseFloat(formData.delivery_price) : null,
+        delivery_zone: formData.delivery_available ? formData.delivery_zone : null,
+        phone: formData.phone || null,
+        phone_visible: formData.phone_visible,
+        whatsapp_available: formData.whatsapp_available,
       });
 
       if (error) throw error;
+
+      // Clear draft after successful submission
+      localStorage.removeItem('listing_draft');
 
       toast({
         title: "Annonce publiée !",
@@ -272,17 +368,17 @@ const Publish = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="category">Catégorie *</Label>
+                  <Label htmlFor="category">Catégorie principale *</Label>
                   <Select
-                    value={formData.category_id}
-                    onValueChange={(value) => handleInputChange("category_id", value)}
+                    value={parentCategoryId}
+                    onValueChange={handleParentCategoryChange}
                     required
                   >
-                    <SelectTrigger className={errors.category_id ? "border-destructive" : formData.category_id ? "border-green-500" : ""}>
-                      <SelectValue placeholder="Choisir une catégorie" />
+                    <SelectTrigger className={errors.category_id ? "border-destructive" : parentCategoryId ? "border-green-500" : ""}>
+                      <SelectValue placeholder="Sélectionner une catégorie" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories?.map((category) => (
+                      {parentCategories?.map((category) => (
                         <SelectItem key={category.id} value={category.id}>
                           {category.name}
                         </SelectItem>
@@ -292,6 +388,29 @@ const Publish = () => {
                   {errors.category_id && <p className="text-sm text-destructive mt-1">{errors.category_id}</p>}
                 </div>
 
+                {subcategories && subcategories.length > 0 && (
+                  <div className="space-y-2">
+                    <Label htmlFor="subcategory">Sous-catégorie</Label>
+                    <Select
+                      value={formData.subcategory_id}
+                      onValueChange={handleSubcategoryChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Affiner (optionnel)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {subcategories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="price">Prix (FCFA) {!formData.isFree && "*"}</Label>
                   <Input
@@ -366,10 +485,141 @@ const Publish = () => {
                 </div>
               </div>
 
+              {/* Section Livraison */}
+              <div className="space-y-4 p-4 border rounded-lg">
+                <h3 className="font-semibold">Options de livraison</h3>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="delivery_available"
+                    checked={formData.delivery_available}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, delivery_available: checked as boolean })
+                    }
+                  />
+                  <Label htmlFor="delivery_available" className="cursor-pointer font-normal">
+                    Livraison possible
+                  </Label>
+                </div>
+
+                {formData.delivery_available && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="delivery_price">Frais de livraison (FCFA)</Label>
+                      <Input
+                        id="delivery_price"
+                        type="number"
+                        value={formData.delivery_price}
+                        onChange={(e) => setFormData({ ...formData, delivery_price: e.target.value })}
+                        placeholder="Ex: 2000"
+                        min="0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="delivery_zone">Zone de livraison</Label>
+                      <Select
+                        value={formData.delivery_zone}
+                        onValueChange={(value) => setFormData({ ...formData, delivery_zone: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="city">Ville uniquement</SelectItem>
+                          <SelectItem value="region">Toute la région</SelectItem>
+                          <SelectItem value="country">Tout le pays</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+
+                {!formData.delivery_available && (
+                  <p className="text-sm text-muted-foreground ml-6">
+                    ☑️ Remise en main propre uniquement
+                  </p>
+                )}
+              </div>
+
+              {/* Section Téléphone */}
+              <div className="space-y-4 p-4 border rounded-lg">
+                <h3 className="font-semibold">Contact</h3>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Numéro de téléphone (optionnel)</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="Ex: +225 01 02 03 04 05"
+                  />
+                </div>
+
+                {formData.phone && (
+                  <div className="space-y-2 ml-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="phone_visible"
+                        checked={formData.phone_visible}
+                        onCheckedChange={(checked) =>
+                          setFormData({ ...formData, phone_visible: checked as boolean })
+                        }
+                      />
+                      <Label htmlFor="phone_visible" className="cursor-pointer font-normal">
+                        Afficher mon numéro dans l'annonce
+                      </Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="whatsapp_available"
+                        checked={formData.whatsapp_available}
+                        onCheckedChange={(checked) =>
+                          setFormData({ ...formData, whatsapp_available: checked as boolean })
+                        }
+                      />
+                      <Label htmlFor="whatsapp_available" className="cursor-pointer font-normal">
+                        WhatsApp disponible sur ce numéro
+                      </Label>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Section CGU */}
+              <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
+                <div className="flex items-start space-x-2">
+                  <Checkbox
+                    id="acceptTerms"
+                    checked={acceptedTerms}
+                    onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+                    required
+                  />
+                  <Label htmlFor="acceptTerms" className="cursor-pointer font-normal text-sm leading-relaxed">
+                    En publiant, vous acceptez nos{" "}
+                    <a href="/terms" className="text-primary hover:underline">
+                      Conditions d'utilisation
+                    </a>{" "}
+                    et notre{" "}
+                    <a href="/help" className="text-primary hover:underline">
+                      Politique de publication
+                    </a>. 
+                    Votre annonce sera modérée avant publication.
+                  </Label>
+                </div>
+              </div>
+
+              {lastSaved && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Brouillon sauvegardé à {lastSaved.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              )}
+
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !acceptedTerms}
                 size="lg"
               >
                 {isSubmitting ? "Publication..." : "Publier l'annonce"}
