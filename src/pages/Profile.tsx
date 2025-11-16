@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { PullToRefresh } from "@/components/PullToRefresh";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,18 +14,8 @@ import { LogOut, Edit, Settings, Shield, Bell, Share2, ArrowLeft, Users, Star, M
 
 const Profile = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-
-  const handleRefresh = async () => {
-    await queryClient.invalidateQueries({ queryKey: ["userProfile"] });
-    await queryClient.invalidateQueries({ queryKey: ["userListings"] });
-    await queryClient.invalidateQueries({ queryKey: ["userReviews"] });
-    await queryClient.invalidateQueries({ queryKey: ["userFollowing"] });
-    await queryClient.invalidateQueries({ queryKey: ["favorites"] });
-    await queryClient.invalidateQueries({ queryKey: ["transactions"] });
-  };
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -235,8 +224,7 @@ const Profile = () => {
   if (monthsSinceMember >= 12) badges.push({ icon: Calendar, label: "Membre fidèle", color: "text-purple-500" });
 
   return (
-    <PullToRefresh onRefresh={handleRefresh}>
-      <div className="min-h-screen pb-24 bg-gradient-to-b from-background to-muted/20">
+    <div className="min-h-screen pb-24 bg-gradient-to-b from-background to-muted/20">
       {/* Header with Cover */}
       <div className="relative">
         {/* Cover Image */}
@@ -753,7 +741,6 @@ const Profile = () => {
 
       <BottomNav />
     </div>
-    </PullToRefresh>
   );
 };
 

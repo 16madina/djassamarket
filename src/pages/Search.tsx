@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { PullToRefresh } from "@/components/PullToRefresh";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -19,7 +18,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const Search = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [filters, setFilters] = useState({
@@ -30,12 +28,6 @@ const Search = () => {
     condition: searchParams.get("condition") || "",
     sortBy: searchParams.get("sortBy") || "recent",
   });
-
-  const handleRefresh = async () => {
-    await queryClient.invalidateQueries({ queryKey: ["search"] });
-    await queryClient.invalidateQueries({ queryKey: ["categories"] });
-    await queryClient.invalidateQueries({ queryKey: ["userProfile"] });
-  };
 
   const { data: userProfile } = useQuery({
     queryKey: ["userProfile"],
@@ -142,8 +134,8 @@ const Search = () => {
   };
 
   return (
-    <PullToRefresh onRefresh={handleRefresh}>
-      <div className="min-h-screen pb-24 bg-background p-4">
+    <div className="min-h-screen pb-24 bg-muted/30">
+      <div className="max-w-screen-xl mx-auto p-4 md:p-6">
         {/* Back Button */}
         <Button
           variant="ghost"
@@ -255,9 +247,9 @@ const Search = () => {
                         <SelectContent>
                           <SelectItem value="">Tous</SelectItem>
                           <SelectItem value="new">Neuf</SelectItem>
-                          <SelectItem value="like-new">Comme neuf</SelectItem>
+                          <SelectItem value="like_new">Comme neuf</SelectItem>
                           <SelectItem value="good">Bon état</SelectItem>
-                          <SelectItem value="used">Usagé</SelectItem>
+                          <SelectItem value="fair">État moyen</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -277,14 +269,19 @@ const Search = () => {
                           <SelectItem value="recent">Plus récent</SelectItem>
                           <SelectItem value="price_asc">Prix croissant</SelectItem>
                           <SelectItem value="price_desc">Prix décroissant</SelectItem>
-                          <SelectItem value="popular">Populaire</SelectItem>
+                          <SelectItem value="popular">Popularité</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
-                    <Button onClick={handleSearch} className="w-full">
-                      Appliquer les filtres
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button onClick={handleSearch} className="flex-1">
+                        Appliquer
+                      </Button>
+                      <Button variant="outline" onClick={resetFilters}>
+                        Réinitialiser
+                      </Button>
+                    </div>
                   </div>
                 </SheetContent>
               </Sheet>
@@ -292,22 +289,24 @@ const Search = () => {
           </CardContent>
         </Card>
 
-        {/* Results count */}
-        {listings && (
-          <p className="text-sm text-muted-foreground mb-4">
-            {listings.length} résultat{listings.length > 1 ? "s" : ""} trouvé{listings.length > 1 ? "s" : ""}
-          </p>
-        )}
+        {/* Results */}
+        <div className="mb-4">
+          <h2 className="text-2xl font-bold">
+            {isLoading
+              ? "Recherche..."
+              : `${listings?.length || 0} résultat${(listings?.length || 0) > 1 ? "s" : ""}`}
+          </h2>
+        </div>
 
-        {/* Results Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {isLoading ? (
-            Array.from({ length: 6 }).map((_, index) => (
+            // Skeleton loading state
+            Array.from({ length: 8 }).map((_, index) => (
               <Card key={index} className="overflow-hidden">
-                <Skeleton className="aspect-square" />
+                <Skeleton className="aspect-square w-full" />
                 <CardContent className="p-4">
                   <Skeleton className="h-5 w-full mb-2" />
-                  <Skeleton className="h-6 w-24 mb-2" />
+                  <Skeleton className="h-7 w-24 mb-2" />
                   <Skeleton className="h-4 w-32" />
                 </CardContent>
                 <CardFooter className="p-4 pt-0">
@@ -379,7 +378,7 @@ const Search = () => {
         )}
       </div>
       <BottomNav />
-    </PullToRefresh>
+    </div>
   );
 };
 
