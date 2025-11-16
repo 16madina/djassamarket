@@ -49,12 +49,32 @@ export const LocationPicker = ({ onSelectLocation }: LocationPickerProps) => {
       },
       (error) => {
         console.error('Geolocation error:', error);
+        
+        let errorMessage = 'Impossible d\'obtenir votre position';
+        
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Vous devez autoriser l\'accès à votre position dans les paramètres de votre navigateur';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Les informations de localisation ne sont pas disponibles';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'La demande de localisation a expiré. Veuillez réessayer';
+            break;
+        }
+        
         toast({
-          title: 'Erreur',
-          description: 'Impossible d\'obtenir votre position',
+          title: 'Erreur de géolocalisation',
+          description: errorMessage,
           variant: 'destructive',
         });
         setLoading(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
       }
     );
   };
