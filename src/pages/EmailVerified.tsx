@@ -18,7 +18,18 @@ const EmailVerified = () => {
       
       if (accessToken) {
         // Supabase will automatically handle the session from the URL
-        await supabase.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        // Update profile to mark email as verified
+        if (session?.user) {
+          await supabase
+            .from('profiles')
+            .update({ 
+              email_verified: true,
+              verified_at: new Date().toISOString()
+            })
+            .eq('id', session.user.id);
+        }
       }
       
       setIsProcessing(false);
