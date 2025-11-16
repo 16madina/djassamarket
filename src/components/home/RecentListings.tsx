@@ -1,10 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Clock } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { fr } from "date-fns/locale";
+import { Skeleton } from "@/components/ui/skeleton";
+import { MapPin } from "lucide-react";
 import { translateCondition } from "@/utils/translations";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { sortListingsByLocation, getLocationPriority, getLocationBadgeColor } from "@/utils/geographicFiltering";
@@ -45,7 +44,7 @@ const RecentListings = () => {
     enabled: !!session?.user, // NE S'EXÉCUTE QUE SI L'UTILISATEUR EST AUTHENTIFIÉ
   });
   
-  const { data: listings } = useQuery({
+  const { data: listings, isLoading } = useQuery({
     queryKey: ["recent-listings", userProfile?.city, userProfile?.country],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -68,6 +67,7 @@ const RecentListings = () => {
       
       return data;
     },
+    staleTime: 1000 * 60 * 5, // Cache pendant 5 minutes
   });
 
   // RÈGLE : Priorité géographique pour utilisateurs authentifiés
@@ -94,6 +94,41 @@ const RecentListings = () => {
   const hasUserLocation = !!(userProfile?.city || userProfile?.country);
 
 
+  // Fonction pour déterminer les badges à afficher (max 2, avec priorité)
+  const getBadges = (listing: any) => {
+    const badges: JSX.Element[] = [];
+    
+    // 1. Priorité: État (condition)
+    if (listing.condition) {
+      badges.push(
+        <Badge key="condition" className="bg-accent/90 text-accent-foreground backdrop-blur-sm text-xs">
+          {translateCondition(listing.condition, language)}
+        </Badge>
+      );
+    }
+    
+    // 2. Priorité: Proximité (uniquement si < 5km et si on a déjà moins de 2 badges)
+    if (badges.length < 2 && isAuthenticated) {
+      const locationInfo = getLocationPriority(
+        listing.location,
+        userProfile?.city || null,
+        userProfile?.country || null
+      );
+      
+      // Afficher "À proximité" uniquement si même ville (< 5km théorique)
+      if (locationInfo.priority === 'same-city') {
+        badges.push(
+          <Badge key="proximity" className={`${getLocationBadgeColor(locationInfo.priority)} backdrop-blur-sm text-xs flex items-center gap-1`}>
+            <MapPin className="h-3 w-3" />
+            {locationInfo.distance}
+          </Badge>
+        );
+      }
+    }
+    
+    return badges.slice(0, 2); // Maximum 2 badges
+  };
+
   // Fonction de rendu pour une carte d'annonce
   const renderListingCard = (listing: any, index: number) => (
     <Card 
@@ -107,6 +142,7 @@ const RecentListings = () => {
           <img
             src={listing.images[0]}
             alt={listing.title}
+            loading="lazy"
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
@@ -114,33 +150,17 @@ const RecentListings = () => {
             {t('listings.no_image')}
           </div>
         )}
-        <div className="absolute top-2 left-2 flex flex-col gap-1.5 items-start">
-          <Badge className="bg-accent/90 text-accent-foreground backdrop-blur-sm text-xs">
-            {translateCondition(listing.condition, language)}
-          </Badge>
-          {(() => {
-            const locationInfo = getLocationPriority(
-              listing.location,
-              userProfile?.city || null,
-              userProfile?.country || null
-            );
-            if (locationInfo.priority !== 'other') {
-              return (
-                <Badge className={`${getLocationBadgeColor(locationInfo.priority)} backdrop-blur-sm text-xs flex items-center gap-1`}>
-                  <MapPin className="h-3 w-3" />
-                  {locationInfo.distance}
-                </Badge>
-              );
-            }
-            return null;
-          })()}
-        </div>
+        {getBadges(listing).length > 0 && (
+          <div className="absolute top-2 left-2 flex flex-col gap-1.5 items-start">
+            {getBadges(listing)}
+          </div>
+        )}
       </div>
-      <CardContent className="p-3">
-        <h3 className="font-semibold text-sm mb-1 line-clamp-2">
+      <CardContent className="p-4">
+        <h3 className="font-semibold text-lg mb-2 line-clamp-2 leading-tight">
           {listing.title}
         </h3>
-        <p className="font-bold text-primary text-base mb-1">
+        <p className="font-bold text-primary text-xl mb-2">
           {listing.price === 0 ? (
             <span className="text-green-600">
               {formatPriceWithConversion(0, listing.currency || "FCFA", userProfile?.currency || "FCFA")}
@@ -149,10 +169,22 @@ const RecentListings = () => {
             formatPriceWithConversion(listing.price, listing.currency || "FCFA", userProfile?.currency || "FCFA")
           )}
         </p>
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <MapPin className="h-3 w-3" />
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground/70">
+          <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
           <span className="line-clamp-1">{listing.location}</span>
         </div>
+      </CardContent>
+    </Card>
+  );
+
+  // Composant skeleton pour le chargement
+  const SkeletonCard = () => (
+    <Card className="overflow-hidden border-0 shadow-sm">
+      <Skeleton className="aspect-square w-full" />
+      <CardContent className="p-4 space-y-3">
+        <Skeleton className="h-5 w-full" />
+        <Skeleton className="h-6 w-24" />
+        <Skeleton className="h-4 w-32" />
       </CardContent>
     </Card>
   );
@@ -161,16 +193,22 @@ const RecentListings = () => {
     <section className="py-8 px-4">
       <div className="max-w-screen-xl mx-auto">
         <h2 className="text-2xl font-bold mb-6">{t('listings.recent')}</h2>
-        {!listings || listings.length === 0 ? (
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        ) : !listings || listings.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <p className="text-lg">{t('listings.no_results')}</p>
             <p className="text-sm mt-2">{t('listings.be_first')}</p>
           </div>
         ) : (
           <div className="space-y-8">
-            {/* Afficher tous les listings pour non-connectés, filtrés géographiquement pour connectés */}
+            {/* Mobile: 1 colonne, Tablet: 2 colonnes, Desktop: 3 colonnes */}
             {hasDisplayedListings ? (
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {displayedListings.map((listing, index) => renderListingCard(listing, index))}
               </div>
             ) : isAuthenticated && hasUserLocation ? (
