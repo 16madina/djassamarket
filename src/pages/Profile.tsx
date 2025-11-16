@@ -12,11 +12,21 @@ import { ReviewCard } from "@/components/profile/ReviewCard";
 import { toast } from "sonner";
 import { LogOut, Edit, Settings, Shield, Bell, Share2, ArrowLeft, Users, Star, MapPin, Calendar, Package, TrendingUp, Award, Heart, Receipt, CheckCircle2, X, Mail, CheckCircle } from "lucide-react";
 import { toast as toastHook } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Profile = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showVerificationAlert, setShowVerificationAlert] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -199,10 +209,7 @@ const Profile = () => {
 
       if (error) throw error;
 
-      toastHook({
-        title: "Email envoyé",
-        description: "Vérifiez votre boîte de réception pour confirmer votre email",
-      });
+      setShowVerificationAlert(true);
     } catch (error) {
       console.error('Error sending verification email:', error);
       toastHook({
@@ -793,6 +800,31 @@ const Profile = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      <AlertDialog open={showVerificationAlert} onOpenChange={setShowVerificationAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-primary" />
+              Email de vérification envoyé
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3 pt-2">
+              <p className="text-base">
+                Nous vous avons envoyé un email de vérification à <strong>{user?.email}</strong>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Veuillez vérifier votre boîte de réception et cliquer sur le lien de confirmation.
+              </p>
+              <p className="text-sm text-orange-600 font-medium">
+                ⚠️ N'oubliez pas de vérifier vos spams si vous ne trouvez pas l'email !
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction>J'ai compris</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <BottomNav />
     </div>
