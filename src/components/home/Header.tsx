@@ -36,7 +36,7 @@ const Header = ({ isAuthenticated }: HeaderProps) => {
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold text-primary flex items-baseline gap-1">
             DJASSA
-            <span className="text-xl font-normal italic text-primary/80" style={{ fontFamily: 'cursive' }}>Market</span>
+            <span className="text-lg font-pacifico text-primary/80">Market</span>
           </h1>
         </div>
 
