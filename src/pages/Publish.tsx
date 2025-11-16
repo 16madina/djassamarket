@@ -136,10 +136,11 @@ const Publish = () => {
         }
         break;
       case "description":
-        if (value.length < 20) {
-          newErrors.description = "La description doit contenir au moins 20 caractères";
-        } else if (value.length > 500) {
-          newErrors.description = "La description ne peut pas dépasser 500 caractères";
+        const wordCount = value.trim().split(/\s+/).filter(word => word.length > 0).length;
+        if (wordCount < 20) {
+          newErrors.description = `La description doit contenir au moins 20 mots (actuellement: ${wordCount} mots)`;
+        } else if (value.length > 1000) {
+          newErrors.description = "La description ne peut pas dépasser 1000 caractères";
         } else {
           delete newErrors.description;
         }
@@ -353,20 +354,22 @@ const Publish = () => {
                 {formData.title.length > 0 && <p className="text-sm text-muted-foreground mt-1">{formData.title.length} caractères</p>}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Description *</Label>
+              <div className="space-y-2" data-tutorial="description-input">
+                <Label htmlFor="description">Description * (minimum 20 mots)</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => handleInputChange("description", e.target.value)}
-                  placeholder="Décrivez votre article en détail..."
+                  placeholder="Décrivez votre article en détail (état, fonctionnalités, raison de la vente...)..."
                   required
                   rows={5}
-                  maxLength={500}
-                  className={errors.description ? "border-destructive" : formData.description.length >= 20 ? "border-green-500" : ""}
+                  maxLength={1000}
+                  className={errors.description ? "border-destructive" : formData.description.trim().split(/\s+/).filter(w => w.length > 0).length >= 20 ? "border-green-500" : ""}
                 />
                 {errors.description && <p className="text-sm text-destructive mt-1">{errors.description}</p>}
-                <p className="text-sm text-muted-foreground mt-1">{formData.description.length}/500 caractères</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {formData.description.trim().split(/\s+/).filter(word => word.length > 0).length} mots • {formData.description.length}/1000 caractères
+                </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

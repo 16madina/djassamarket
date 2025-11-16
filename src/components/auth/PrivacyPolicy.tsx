@@ -140,7 +140,7 @@ export const PrivacyPolicy = ({ open, onOpenChange }: PrivacyPolicyProps) => {
               </p>
               <ul className="list-disc list-inside text-muted-foreground mt-2 space-y-1">
                 <li><strong>Appareil photo/Photos :</strong> Pour ajouter des images à vos annonces</li>
-                <li><strong>Localisation :</strong> Pour filtrer les annonces près de vous (optionnel)</li>
+                <li><strong>Localisation :</strong> Utilisée UNIQUEMENT pour afficher les annonces près de vous et faciliter les rencontres locales. Seules votre ville et votre pays sont visibles publiquement, jamais votre localisation précise GPS</li>
                 <li><strong>Notifications :</strong> Pour vous informer des messages et activités</li>
                 <li><strong>Stockage :</strong> Pour sauvegarder temporairement des images</li>
               </ul>

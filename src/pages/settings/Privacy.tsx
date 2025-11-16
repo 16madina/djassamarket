@@ -9,11 +9,11 @@ const Privacy = () => {
   const sections = [
     {
       title: "1. Introduction",
-      content: "ReVivo s'engage à protéger votre vie privée. Cette politique explique comment nous collectons, utilisons et protégeons vos données personnelles conformément au RGPD (Règlement Général sur la Protection des Données)."
+      content: "DJASSA s'engage à protéger votre vie privée. Cette politique explique comment nous collectons, utilisons et protégeons vos données personnelles conformément au RGPD (Règlement Général sur la Protection des Données)."
     },
     {
-      title: "2. Données collectées",
-      content: "Nous collectons : vos informations d'inscription (nom, email, téléphone), les données de profil (photo, localisation, préférences), l'historique des transactions et annonces, les messages échangés sur la plateforme, les données de connexion (adresse IP, type d'appareil), et les cookies pour améliorer l'expérience utilisateur."
+      title: "2. Données collectées et géolocalisation",
+      content: "Nous collectons : vos informations d'inscription (nom, email, téléphone), les données de profil (photo, localisation ville/pays, préférences), l'historique des transactions et annonces, les messages échangés sur la plateforme, les données de connexion (adresse IP, type d'appareil), et les cookies. IMPORTANT : La géolocalisation est utilisée UNIQUEMENT pour : afficher les annonces proches de votre zone géographique, permettre aux acheteurs de trouver des articles dans leur région, faciliter les rencontres pour les transactions locales. Nous ne partageons JAMAIS votre localisation précise (GPS) avec d'autres utilisateurs, seules votre ville et votre pays sont visibles publiquement."
     },
     {
       title: "3. Utilisation des données",

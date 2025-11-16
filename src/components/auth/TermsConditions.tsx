@@ -57,7 +57,7 @@ export const TermsConditions = ({ open, onOpenChange }: TermsConditionsProps) =>
                 Lors de la publication d'une annonce, vous vous engagez à :
               </p>
               <ul className="list-disc list-inside text-muted-foreground mt-2 space-y-1">
-                <li>Fournir des descriptions exactes et complètes des articles</li>
+                <li>Fournir des descriptions exactes et complètes des articles (minimum 20 mots)</li>
                 <li>Ne publier que du contenu légal et approprié</li>
                 <li>Ne pas publier de contenu offensant, trompeur ou frauduleux</li>
                 <li>Respecter les droits de propriété intellectuelle</li>
@@ -68,7 +68,7 @@ export const TermsConditions = ({ open, onOpenChange }: TermsConditionsProps) =>
             <section>
               <h3 className="font-semibold text-base mb-2">5. Transactions</h3>
               <p className="text-muted-foreground">
-                DJASSA facilite la mise en relation entre acheteurs et vendeurs, mais n'est pas partie aux transactions. Les utilisateurs sont responsables de :
+                DJASSA facilite la mise en relation entre acheteurs et vendeurs, mais n'est pas partie aux transactions. Les paiements se font directement entre utilisateurs (espèces, Mobile Money, virement, etc.) en dehors de la plateforme. Les utilisateurs sont responsables de :
               </p>
               <ul className="list-disc list-inside text-muted-foreground mt-2 space-y-1">
                 <li>La négociation des prix et conditions</li>
@@ -103,9 +103,12 @@ export const TermsConditions = ({ open, onOpenChange }: TermsConditionsProps) =>
             </section>
 
             <section>
-              <h3 className="font-semibold text-base mb-2">8. Modération et suppression de contenu</h3>
+              <h3 className="font-semibold text-base mb-2">8. Modération et vérification</h3>
               <p className="text-muted-foreground">
                 DJASSA se réserve le droit de modérer, modifier ou supprimer tout contenu qui viole ces conditions ou les lois en vigueur. Nous pouvons également suspendre ou supprimer des annonces sans préavis si nécessaire pour protéger la communauté.
+              </p>
+              <p className="text-muted-foreground mt-2">
+                <strong>Badge "Vendeur vérifié" :</strong> Ce badge est attribué aux utilisateurs ayant complété le processus de vérification d'identité (pièce d'identité valide, email vérifié) et ayant maintenu une bonne réputation sur la plateforme (minimum 5 transactions complétées avec une note moyenne ≥4/5 étoiles).
               </p>
             </section>
 
