@@ -87,6 +87,33 @@ const handler = async (req: Request): Promise<Response> => {
         return;
       }
 
+      // Create in-app notification
+      const listingTitles = listings.map(l => l.title).join(', ');
+      const notificationMessage = listings.length > 1 
+        ? `Vous avez ${listings.length} annonces qui n'ont pas été mises à jour depuis plus de 10 jours : ${listingTitles}. Mettez-les à jour pour augmenter leur visibilité !`
+        : `Votre annonce "${listings[0].title}" n'a pas été mise à jour depuis plus de 10 jours. Mettez-la à jour pour augmenter sa visibilité !`;
+
+      const { error: notifError } = await supabaseAdmin
+        .from('system_notifications')
+        .insert({
+          user_id: userId,
+          title: '📢 Annonces inactives',
+          message: notificationMessage,
+          notification_type: 'reminder',
+          metadata: {
+            listing_ids: listings.map(l => l.id),
+            inactive_days: listings.map(l => 
+              Math.floor((Date.now() - new Date(l.updated_at).getTime()) / (1000 * 60 * 60 * 24))
+            )
+          }
+        });
+
+      if (notifError) {
+        console.error(`Failed to create notification for user ${userId}:`, notifError);
+      } else {
+        console.log(`In-app notification created for user ${userId}`);
+      }
+
       // Build listings HTML
       const listingsHtml = listings.map(listing => {
         const daysSinceUpdate = Math.floor(
