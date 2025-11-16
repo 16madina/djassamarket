@@ -6,42 +6,28 @@ interface SplashScreenProps {
 }
 
 const SplashScreen = ({ onFinish }: SplashScreenProps) => {
-  const [stage, setStage] = useState<'logo' | 'text' | 'fadeout'>('logo');
+  const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    // Animation en 3 étapes
-    const logoTimer = setTimeout(() => {
-      setStage('text');
-    }, 800);
+    const timer = setTimeout(() => {
+      setFadeOut(true);
+      setTimeout(() => {
+        onFinish();
+      }, 600);
+    }, 2000);
 
-    const textTimer = setTimeout(() => {
-      setStage('fadeout');
-    }, 1600);
-
-    const finishTimer = setTimeout(() => {
-      onFinish();
-    }, 2300);
-
-    return () => {
-      clearTimeout(logoTimer);
-      clearTimeout(textTimer);
-      clearTimeout(finishTimer);
-    };
+    return () => clearTimeout(timer);
   }, [onFinish]);
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-background via-primary/5 to-accent/5 transition-opacity duration-700 ${
-        stage === 'fadeout' ? "opacity-0" : "opacity-100"
+      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-background via-primary/5 to-accent/5 transition-opacity duration-600 ${
+        fadeOut ? "opacity-0" : "opacity-100"
       }`}
     >
-      <div className="flex flex-col items-center gap-6 relative">
-        {/* Logo principal avec animation de zoom */}
-        <div 
-          className={`relative transition-all duration-700 ${
-            stage === 'logo' ? 'scale-75 opacity-0' : 'scale-100 opacity-100'
-          }`}
-        >
+      <div className="flex flex-col items-center gap-8">
+        {/* Un seul logo avec animation */}
+        <div className="relative animate-scale-in">
           <img
             src={djassaLogo}
             alt="DJASSA Market"
@@ -51,49 +37,41 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
               WebkitFontSmoothing: 'antialiased'
             }}
           />
-          {/* Effet de lueur */}
+          {/* Effet de lueur pulsante */}
           <div className="absolute inset-0 blur-3xl bg-gradient-to-r from-primary/30 via-accent/20 to-primary/30 -z-10 animate-pulse" />
         </div>
         
-        {/* Texte qui apparaît après le logo */}
+        {/* Slogan qui apparaît après */}
         <div 
-          className={`flex flex-col items-center gap-3 transition-all duration-700 ${
-            stage === 'text' || stage === 'fadeout' ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
-          }`}
+          className="flex flex-col items-center gap-3 animate-fade-in"
+          style={{ animationDelay: "0.5s" }}
         >
-          <div className="flex items-baseline gap-2">
-            <h1 className="text-5xl md:text-6xl font-bold text-foreground tracking-tight">
-              DJASSA
-            </h1>
-          </div>
-          <p className="text-2xl md:text-3xl font-pacifico text-primary">
-            Market
-          </p>
-          <div className="h-1 w-24 bg-gradient-to-r from-transparent via-primary to-transparent mt-2" />
-          <p className="text-sm md:text-base text-muted-foreground mt-2">
-            Votre marketplace de confiance
+          <div className="h-1 w-24 bg-gradient-to-r from-transparent via-primary to-transparent" />
+          <p className="text-base md:text-lg text-muted-foreground text-center px-6">
+            Donnez une seconde vie à vos articles
           </p>
         </div>
 
         {/* Indicateur de chargement */}
-        {stage !== 'fadeout' && (
-          <div className="flex gap-2 mt-8 absolute bottom-0">
-            <div 
-              className="w-2 h-2 rounded-full bg-primary animate-bounce" 
-              style={{ animationDelay: "0s", animationDuration: "0.6s" }} 
-            />
-            <div 
-              className="w-2 h-2 rounded-full bg-primary animate-bounce" 
-              style={{ animationDelay: "0.2s", animationDuration: "0.6s" }} 
-            />
-            <div 
-              className="w-2 h-2 rounded-full bg-primary animate-bounce" 
-              style={{ animationDelay: "0.4s", animationDuration: "0.6s" }} 
-            />
-          </div>
-        )}
+        <div 
+          className="flex gap-2 mt-4 animate-fade-in"
+          style={{ animationDelay: "0.8s" }}
+        >
+          <div 
+            className="w-2 h-2 rounded-full bg-primary animate-bounce" 
+            style={{ animationDelay: "0s", animationDuration: "0.6s" }} 
+          />
+          <div 
+            className="w-2 h-2 rounded-full bg-primary animate-bounce" 
+            style={{ animationDelay: "0.2s", animationDuration: "0.6s" }} 
+          />
+          <div 
+            className="w-2 h-2 rounded-full bg-primary animate-bounce" 
+            style={{ animationDelay: "0.4s", animationDuration: "0.6s" }} 
+          />
+        </div>
 
-        {/* Cercles décoratifs animés */}
+        {/* Cercles décoratifs légers en arrière-plan */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden -z-20">
           <div 
             className="absolute top-1/4 left-1/4 w-32 h-32 rounded-full bg-primary/5 animate-pulse"
