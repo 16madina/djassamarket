@@ -37,7 +37,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Redirect URL:", redirectUrl);
 
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'magiclink',
+      type: 'recovery',
       email: email,
       options: {
         redirectTo: redirectUrl
