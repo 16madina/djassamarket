@@ -31,25 +31,24 @@ const handler = async (req: Request): Promise<Response> => {
       }
     });
 
-    const productionDomain = 'https://djassamarket.com';
-    const redirectUrl = `${productionDomain}/email-verified`;
-
-    console.log("Redirect URL:", redirectUrl);
-
-    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'recovery',
-      email: email,
-      options: {
-        redirectTo: redirectUrl
-      }
-    });
-
-    if (linkError) {
-      console.error("Error generating verification link:", linkError);
-      throw linkError;
+    // Get user by email
+    const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+    
+    if (listError) {
+      console.error("Error listing users:", listError);
+      throw listError;
     }
 
-    const confirmationUrl = linkData.properties?.action_link;
+    const user = users.find(u => u.email === email);
+    
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const productionDomain = 'https://djassamarket.com';
+    const confirmationUrl = `${productionDomain}/email-verified?userId=${user.id}`;
+
+    console.log("Confirmation URL:", confirmationUrl);
 
     console.log("Sending verification email to:", email);
 

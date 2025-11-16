@@ -11,31 +11,33 @@ const EmailVerified = () => {
   const [isProcessing, setIsProcessing] = useState(true);
 
   useEffect(() => {
-    // Handle authentication from URL params
-    const handleAuth = async () => {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
+    // Handle email verification from URL params
+    const handleVerification = async () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const userId = searchParams.get('userId');
       
-      if (accessToken) {
-        // Supabase will automatically handle the session from the URL
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        // Update profile to mark email as verified
-        if (session?.user) {
-          await supabase
-            .from('profiles')
-            .update({ 
-              email_verified: true,
-              verified_at: new Date().toISOString()
-            })
-            .eq('id', session.user.id);
+      if (userId) {
+        try {
+          // Call the confirm-email edge function
+          const { error } = await supabase.functions.invoke('confirm-email', {
+            body: { userId }
+          });
+          
+          if (error) {
+            console.error("Error confirming email:", error);
+            throw error;
+          }
+          
+          console.log("Email verified successfully");
+        } catch (error) {
+          console.error("Failed to verify email:", error);
         }
       }
       
       setIsProcessing(false);
     };
 
-    handleAuth();
+    handleVerification();
   }, []);
 
   useEffect(() => {
