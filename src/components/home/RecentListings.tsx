@@ -13,16 +13,25 @@ import { formatPriceWithConversion } from "@/utils/currency";
 const RecentListings = () => {
   const { t, language } = useLanguage();
   
-  const { data: userProfile } = useQuery({
-    queryKey: ["userProfile"],
+  // Vérifier d'abord si l'utilisateur est authentifié
+  const { data: session } = useQuery({
+    queryKey: ["authSession"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
+      const { data: { session } } = await supabase.auth.getSession();
+      return session;
+    },
+  });
+  
+  // Ne charger le profil QUE si l'utilisateur est authentifié
+  const { data: userProfile } = useQuery({
+    queryKey: ["userProfile", session?.user?.id],
+    queryFn: async () => {
+      if (!session?.user) return null;
       
       const { data, error } = await supabase
         .from("profiles")
         .select("city, country, currency")
-        .eq("id", user.id)
+        .eq("id", session.user.id)
         .single();
       
       if (error) {
@@ -33,6 +42,7 @@ const RecentListings = () => {
       console.log("👤 User profile loaded:", data);
       return data;
     },
+    enabled: !!session?.user, // NE S'EXÉCUTE QUE SI L'UTILISATEUR EST AUTHENTIFIÉ
   });
   
   const { data: listings } = useQuery({
@@ -60,26 +70,27 @@ const RecentListings = () => {
     },
   });
 
-  // RÈGLE STRICTE : Priorité géographique absolue
-  // 1. Même ville et même pays uniquement
-  // 2. Si aucune annonce locale, ne rien afficher (pas de pays voisins sur page d'accueil)
-  const localListings = listings?.filter(listing => {
-    const locationInfo = getLocationPriority(
-      listing.location,
-      userProfile?.city || null,
-      userProfile?.country || null
-    );
-    console.log('🏠 Listing:', listing.title, '| Location:', listing.location, '| User:', userProfile?.city, userProfile?.country, '| Priority:', locationInfo.priority);
-    // STRICTEMENT même ville ou même pays - AUCUNE exception
-    return locationInfo.priority === 'same-city' || locationInfo.priority === 'same-country';
-  }) || [];
+  // RÈGLE : Priorité géographique pour utilisateurs authentifiés
+  // - Si NON authentifié : afficher TOUS les listings (pas de filtre)
+  // - Si authentifié : filtre strict (même ville ou même pays uniquement)
+  const isAuthenticated = !!session?.user;
+  
+  const displayedListings = !isAuthenticated 
+    ? listings || [] // Utilisateur non connecté : afficher tous les listings
+    : listings?.filter(listing => {
+        const locationInfo = getLocationPriority(
+          listing.location,
+          userProfile?.city || null,
+          userProfile?.country || null
+        );
+        console.log('🏠 Listing:', listing.title, '| Location:', listing.location, '| User:', userProfile?.city, userProfile?.country, '| Priority:', locationInfo.priority);
+        // STRICTEMENT même ville ou même pays - AUCUNE exception
+        return locationInfo.priority === 'same-city' || locationInfo.priority === 'same-country';
+      }) || [];
 
-  console.log('📊 Total listings:', listings?.length, '| Local listings:', localListings.length, '| User location:', userProfile?.city, userProfile?.country);
+  console.log('📊 Auth:', isAuthenticated, '| Total listings:', listings?.length, '| Displayed listings:', displayedListings.length, '| User location:', userProfile?.city, userProfile?.country);
 
-  // Ne pas afficher les annonces distantes (pays voisins ou autres)
-  const distantListings: any[] = [];
-
-  const hasLocalListings = localListings.length > 0;
+  const hasDisplayedListings = displayedListings.length > 0;
   const hasUserLocation = !!(userProfile?.city || userProfile?.country);
 
 
@@ -157,12 +168,12 @@ const RecentListings = () => {
           </div>
         ) : (
           <div className="space-y-8">
-            {/* Afficher uniquement les annonces du même pays */}
-            {hasLocalListings ? (
+            {/* Afficher tous les listings pour non-connectés, filtrés géographiquement pour connectés */}
+            {hasDisplayedListings ? (
               <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {localListings.map((listing, index) => renderListingCard(listing, index))}
+                {displayedListings.map((listing, index) => renderListingCard(listing, index))}
               </div>
-            ) : hasUserLocation ? (
+            ) : isAuthenticated && hasUserLocation ? (
               <div className="text-center py-6 bg-muted/30 rounded-lg border border-border/50">
                 <p className="text-muted-foreground font-medium">{t('listings.no_local')}</p>
               </div>
