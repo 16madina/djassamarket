@@ -42,6 +42,9 @@ const config: CapacitorConfig = {
           "NSLocationWhenInUseUsageDescription: Nous utilisons votre position pour estimer la distance avec les annonceurs et améliorer vos résultats de recherche"
         ]
       }
+    },
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"]
     }
   }
 };

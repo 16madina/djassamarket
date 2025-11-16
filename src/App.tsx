@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import SplashScreen from "./components/SplashScreen";
+import { usePushNotifications } from "./hooks/usePushNotifications";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Categories from "./pages/Categories";
@@ -48,6 +49,9 @@ const App = () => {
     const hasSeenSplash = sessionStorage.getItem('hasSeenSplash');
     return !hasSeenSplash;
   });
+
+  // Initialiser les notifications push
+  usePushNotifications();
 
   const handleSplashFinish = () => {
     sessionStorage.setItem('hasSeenSplash', 'true');
