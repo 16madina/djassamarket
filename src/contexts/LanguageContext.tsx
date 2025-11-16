@@ -91,7 +91,7 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.settings": "Paramètres",
     
     // Hero section
-    "hero.title": "Bienvenue sur DJASSA",
+    "hero.title": "Bienvenue au DJASSA",
     "hero.subtitle": "Donnez une seconde vie à vos articles",
     "hero.search_placeholder": "Rechercher un article de seconde vie...",
     "hero.search_button": "Rechercher",
