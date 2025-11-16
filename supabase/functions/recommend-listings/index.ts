@@ -73,7 +73,7 @@ serve(async (req) => {
       return 999; // other
     };
 
-    // Récupérer toutes les annonces actives
+    // Récupérer toutes les annonces actives (y compris celles de l'utilisateur)
     const { data: allListings } = await supabase
       .from("listings")
       .select(`
@@ -88,7 +88,6 @@ serve(async (req) => {
         categories(name)
       `)
       .eq("status", "active")
-      .neq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(100);
 
