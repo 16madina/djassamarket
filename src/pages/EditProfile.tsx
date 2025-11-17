@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, MapPin } from "lucide-react";
 import { ProfileImageUpload } from "@/components/auth/ProfileImageUpload";
+import { LocationAutocomplete } from "@/components/listing/LocationAutocomplete";
 
 const EditProfile = () => {
   const navigate = useNavigate();
@@ -23,6 +24,52 @@ const EditProfile = () => {
     country: "",
     avatar_url: ""
   });
+
+  // Fonction pour détecter la localisation
+  const detectLocation = async () => {
+    if (!('geolocation' in navigator)) {
+      toast.error("Géolocalisation non disponible", {
+        description: "Votre navigateur ne supporte pas la géolocalisation"
+      });
+      return;
+    }
+
+    toast.info("Détection en cours...", {
+      description: "Veuillez autoriser l'accès à votre localisation"
+    });
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${position.coords.latitude}&lon=${position.coords.longitude}&format=json`
+          );
+          const data = await response.json();
+          
+          const detectedCity = data.address?.city || data.address?.town || data.address?.village || "";
+          const detectedCountry = data.address?.country || "";
+          
+          if (detectedCity && detectedCountry) {
+            setFormData(prev => ({
+              ...prev,
+              city: detectedCity,
+              country: detectedCountry,
+              location: `${detectedCity}, ${detectedCountry}`
+            }));
+            toast.success("Localisation détectée !", {
+              description: `${detectedCity}, ${detectedCountry}`
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching location details:', error);
+          toast.error("Erreur de détection");
+        }
+      },
+      () => {
+        toast.error("Permission refusée");
+      }
+    );
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -142,35 +189,52 @@ const EditProfile = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="location">Adresse</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="city">Ville et Pays</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={detectLocation}
+                  disabled={loading}
+                  className="h-8 gap-2 text-xs"
+                >
+                  <MapPin className="h-3.5 w-3.5" />
+                  <span>Détecter ma position</span>
+                </Button>
+              </div>
+              <LocationAutocomplete
+                value={formData.city && formData.country ? `${formData.city}, ${formData.country}` : ""}
+                onChange={(value) => {
+                  // Extraire ville et pays depuis la valeur sélectionnée
+                  const parts = value.split(',').map(s => s.trim());
+                  if (parts.length >= 2) {
+                    const city = parts[0];
+                    const country = parts.slice(1).join(', ');
+                    setFormData({ 
+                      ...formData, 
+                      city,
+                      country,
+                      location: value
+                    });
+                  }
+                }}
+                placeholder="Ex: Dakar, Sénégal"
+                disabled={loading}
+              />
+              <p className="text-xs text-muted-foreground">
+                Tapez pour voir des suggestions ou cliquez sur "Détecter ma position"
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="location">Adresse (optionnel)</Label>
               <Input
                 id="location"
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                placeholder="Votre adresse"
+                placeholder="Votre adresse complète"
               />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="city">Ville</Label>
-                <Input
-                  id="city"
-                  value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  placeholder="Paris"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="country">Pays</Label>
-                <Input
-                  id="country"
-                  value={formData.country}
-                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                  placeholder="France"
-                />
-              </div>
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
