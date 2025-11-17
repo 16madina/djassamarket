@@ -16,6 +16,7 @@ import { ArrowLeft, MapPin } from "lucide-react";
 import { PublishTutorial } from "@/components/onboarding/PublishTutorial";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { LocationAutocomplete } from "@/components/listing/LocationAutocomplete";
+import { NeighborhoodAutocomplete } from "@/components/listing/NeighborhoodAutocomplete";
 
 const Publish = () => {
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ const Publish = () => {
     category_id: "",
     subcategory_id: "",
     location: "",
+    neighborhood: "",
     condition: "new",
     images: [] as string[],
     isFree: false,
@@ -545,6 +547,20 @@ const Publish = () => {
                   <p className="text-xs text-muted-foreground mt-1">Tapez pour voir des suggestions ou cliquez sur "Détecter ma position"</p>
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="neighborhood">Quartier (optionnel)</Label>
+                  <NeighborhoodAutocomplete
+                    value={formData.neighborhood}
+                    onChange={(value) => handleInputChange("neighborhood", value)}
+                    parentLocation={formData.location}
+                    placeholder="Ex: Plateau, Médina..."
+                    disabled={isSubmitting}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Précisez votre quartier pour plus de visibilité</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="condition">État *</Label>
                   <Select
