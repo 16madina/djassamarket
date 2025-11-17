@@ -13,7 +13,7 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchShowDuration: 0,
-      launchAutoHide: false,
+      launchAutoHide: true,
       showSpinner: false
     },
     Camera: {
