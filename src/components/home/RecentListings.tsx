@@ -132,7 +132,7 @@ const RecentListings = () => {
     staleTime: 1000 * 60 * 5, // Cache pendant 5 minutes
   });
 
-  // Get user's coordinates from browser geolocation or user profile
+  // Get user's coordinates from browser geolocation, user profile, or guest location
   useEffect(() => {
     const getCoordinates = async () => {
       // Try browser geolocation first
@@ -143,25 +143,44 @@ const RecentListings = () => {
         return;
       }
 
-      // Fallback: use user profile location
+      // Fallback: use user profile location (authenticated users)
       if (userProfile?.city && userProfile?.country) {
         const locationString = `${userProfile.city}, ${userProfile.country}`;
         const profileCoords = await geocodeLocation(locationString);
         if (profileCoords) {
           setUserCoordinates(profileCoords);
           console.log('📍 User coordinates (profile):', profileCoords);
+          return;
         }
       } else if (userProfile?.country) {
         const profileCoords = await geocodeLocation(userProfile.country);
         if (profileCoords) {
           setUserCoordinates(profileCoords);
           console.log('📍 User coordinates (country):', profileCoords);
+          return;
+        }
+      }
+      
+      // Fallback: use guest location (non-authenticated users)
+      if (guestLocation.city && guestLocation.country) {
+        const locationString = `${guestLocation.city}, ${guestLocation.country}`;
+        const guestCoords = await geocodeLocation(locationString);
+        if (guestCoords) {
+          setUserCoordinates(guestCoords);
+          console.log('📍 Guest coordinates:', guestCoords);
+          return;
+        }
+      } else if (guestLocation.country) {
+        const guestCoords = await geocodeLocation(guestLocation.country);
+        if (guestCoords) {
+          setUserCoordinates(guestCoords);
+          console.log('📍 Guest coordinates (country):', guestCoords);
         }
       }
     };
 
     getCoordinates();
-  }, [userProfile?.city, userProfile?.country]);
+  }, [userProfile?.city, userProfile?.country, guestLocation.city, guestLocation.country]);
 
   // Calculate distances for listings
   useEffect(() => {
@@ -195,18 +214,18 @@ const RecentListings = () => {
     calculateDistances();
   }, [userCoordinates, listings]);
 
-  // RÈGLE : Trier les annonces par proximité pour les utilisateurs authentifiés
-  // - Utilisateurs authentifiés avec localisation: tri par proximité (même ville > même pays > pays voisins > autres)
-  // - Utilisateurs non authentifiés ou sans localisation: ordre chronologique par défaut
+  // RÈGLE : Trier les annonces par proximité pour les utilisateurs avec localisation (authentifiés ou invités)
+  // - Utilisateurs avec localisation: tri par proximité (même ville > même pays > pays voisins > autres)
+  // - Utilisateurs sans localisation: ordre chronologique par défaut
   const isAuthenticated = !!session?.user;
-  const userCity = userProfile?.city || null;
-  const userCountry = userProfile?.country || null;
+  const userCity = userProfile?.city || guestLocation.city || null;
+  const userCountry = userProfile?.country || guestLocation.country || null;
   
   const hasValidLocation = !!(userCity?.trim() || userCountry?.trim());
   
-  // Trier par proximité uniquement pour les utilisateurs authentifiés avec une localisation
-  // Sinon, afficher toutes les annonces dans l'ordre par défaut
-  const displayedListings = isAuthenticated && hasValidLocation
+  // Trier par proximité pour tous les utilisateurs avec une localisation
+  // (authentifiés ou invités avec géolocalisation activée)
+  const displayedListings = hasValidLocation
     ? sortListingsByLocation(listings || [], userCity, userCountry)
     : listings || [];
 
@@ -216,9 +235,9 @@ const RecentListings = () => {
   const hasUserLocation = !!(userProfile?.city || userProfile?.country);
 
 
-  // Fonction pour obtenir le badge de proximité (uniquement pour utilisateurs authentifiés)
+  // Fonction pour obtenir le badge de proximité (pour tous les utilisateurs avec localisation)
   const getProximityBadge = (listing: any) => {
-    if (!session?.user || !hasValidLocation) return null;
+    if (!hasValidLocation) return null;
     
     const locationInfo = getLocationPriority(listing.location, userCity, userCountry);
     
