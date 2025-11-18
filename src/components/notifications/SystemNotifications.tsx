@@ -125,6 +125,12 @@ export const SystemNotifications = () => {
     switch (type) {
       case 'reminder':
         return <Package className="h-5 w-5 text-primary" />;
+      case 'message':
+        return <span className="text-lg">💬</span>;
+      case 'review':
+        return <span className="text-lg">⭐</span>;
+      case 'follower':
+        return <span className="text-lg">👤</span>;
       case 'success':
         return <CheckCircle className="h-5 w-5 text-green-500" />;
       case 'warning':
@@ -132,6 +138,23 @@ export const SystemNotifications = () => {
       default:
         return <Info className="h-5 w-5 text-blue-500" />;
     }
+  };
+
+  const handleNotificationClick = (notification: SystemNotification) => {
+    if (!notification.is_read) {
+      markAsReadMutation.mutate(notification.id);
+    }
+
+    // Naviguer vers la page appropriée selon le type de notification
+    if (notification.notification_type === 'message' && notification.metadata?.conversation_id) {
+      window.location.href = `/messages?conversation=${notification.metadata.conversation_id}`;
+    } else if (notification.notification_type === 'review' && notification.metadata?.listing_id) {
+      window.location.href = `/listing/${notification.metadata.listing_id}`;
+    } else if (notification.notification_type === 'follower' && notification.metadata?.follower_id) {
+      window.location.href = `/seller/${notification.metadata.follower_id}`;
+    }
+    
+    setIsOpen(false);
   };
 
   if (!user) return null;
@@ -193,11 +216,7 @@ export const SystemNotifications = () => {
                         ? 'bg-primary/5 border-primary/20' 
                         : 'hover:bg-muted/50'
                     }`}
-                    onClick={() => {
-                      if (!notification.is_read) {
-                        markAsReadMutation.mutate(notification.id);
-                      }
-                    }}
+                    onClick={() => handleNotificationClick(notification)}
                   >
                     <div className="flex items-start gap-3">
                       <div className="mt-1">
