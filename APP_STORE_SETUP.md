@@ -129,8 +129,8 @@ Modifiez `android/app/src/main/res/values/strings.xml` :
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DJASSA</string>
-    <string name="title_activity_main">DJASSA</string>
+    <string name="app_name">KAZAM Market</string>
+    <string name="title_activity_main">KAZAM Market</string>
     <string name="package_name">app.lovable.fdde6a57c0ea45b0bd6d4e42d3d22471</string>
     <string name="custom_url_scheme">app.lovable.fdde6a57c0ea45b0bd6d4e42d3d22471</string>
 </resources>

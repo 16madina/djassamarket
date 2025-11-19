@@ -67,7 +67,7 @@ export async function geocodeLocation(
       )}&format=json&limit=1`,
       {
         headers: {
-          'User-Agent': 'DjassaMarket/1.0'
+          'User-Agent': 'KazamMarket/1.0'
         }
       }
     );

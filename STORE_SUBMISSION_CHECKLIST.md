@@ -126,7 +126,7 @@ Dans Android Studio :
 - [ ] Sélectionner "Android App Bundle"
 - [ ] Créer ou sélectionner keystore (GARDER PRÉCIEUSEMENT !)
 - [ ] Build → .aab généré dans `android/app/release/`
-- [ ] Fichier .aab sauvegardé (djassa-release-1.0.0.aab)
+- [ ] Fichier .aab sauvegardé (kazam-release-1.0.0.aab)
 
 **IMPORTANT** : Sauvegardez votre keystore et son mot de passe en lieu sûr !
 
@@ -155,7 +155,7 @@ Dans Xcode :
 ### Métadonnées communes
 
 **Nom de l'app**
-- Nom : DJASSA
+- Nom : KAZAM Market
 - Sous-titre iOS (30 char max) : Marketplace seconde main
 - Description courte Android (80 char max) : Achetez et vendez facilement en Afrique de l'Ouest
 
@@ -170,16 +170,16 @@ Dans Xcode :
 - Android : Tags similaires
 
 **Contact**
-- Email support : support@djassamarket.com
-- Site web : https://djassamarket.com (ou votre URL Lovable)
+- Email support : support@kazammarket.com
+- Site web : https://kazammarket.com (ou votre URL Lovable)
 - Politique de confidentialité : (URL vers votre politique)
 
 ### Description de l'app
 
 ```
-DJASSA - Le marketplace de l'économie circulaire en Afrique de l'Ouest
+KAZAM Market - Le marketplace de l'économie circulaire en Afrique de l'Ouest
 
-🌍 DJASSA vous permet d'acheter et de vendre facilement des articles de seconde main dans toute l'Afrique de l'Ouest.
+🌍 KAZAM Market vous permet d'acheter et de vendre facilement des articles de seconde main dans toute l'Afrique de l'Ouest.
 
 ✨ FONCTIONNALITÉS PRINCIPALES
 
@@ -221,7 +221,7 @@ DJASSA - Le marketplace de l'économie circulaire en Afrique de l'Ouest
 • Loisirs & Sports
 • Et bien plus encore !
 
-💡 POURQUOI CHOISIR DJASSA ?
+💡 POURQUOI CHOISIR KAZAM Market ?
 
 ✓ Gratuit à télécharger et à utiliser
 ✓ Pas de frais cachés
@@ -232,14 +232,14 @@ DJASSA - Le marketplace de l'économie circulaire en Afrique de l'Ouest
 
 🌱 ENGAGÉS POUR L'ÉCONOMIE CIRCULAIRE
 
-Donnez une seconde vie à vos articles et contribuez à une consommation plus responsable. Avec DJASSA, chaque objet trouve un nouveau propriétaire.
+Donnez une seconde vie à vos articles et contribuez à une consommation plus responsable. Avec KAZAM Market, chaque objet trouve un nouveau propriétaire.
 
 📞 SUPPORT
 
 Besoin d'aide ? Notre équipe est là pour vous.
-Email : support@djassamarket.com
+Email : support@kazammarket.com
 
-Téléchargez DJASSA maintenant et rejoignez la communauté du marketplace circulaire !
+Téléchargez KAZAM Market maintenant et rejoignez la communauté du marketplace circulaire !
 ```
 
 ### Informations légales
@@ -257,10 +257,10 @@ Téléchargez DJASSA maintenant et rejoignez la communauté du marketplace circu
 - [ ] Connexion sur [App Store Connect](https://appstoreconnect.apple.com/)
 - [ ] "Mes Apps" → "+" → Nouvelle app
 - [ ] Plateforme : iOS
-- [ ] Nom : DJASSA
+- [ ] Nom : KAZAM Market
 - [ ] Langue principale : Français
 - [ ] Bundle ID : app.lovable.fdde6a57c0ea45b0bd6d4e42d3d22471
-- [ ] SKU : djassa-ios-001
+- [ ] SKU : kazam-ios-001
 
 **Informations de l'app**
 - [ ] Captures d'écran uploadées (toutes tailles requises)
@@ -274,7 +274,7 @@ Téléchargez DJASSA maintenant et rejoignez la communauté du marketplace circu
 **Versions et build**
 - [ ] Sélectionner le build uploadé depuis Xcode
 - [ ] Numéro de version : 1.0.0
-- [ ] Copyright : © 2025 DJASSA
+- [ ] Copyright : © 2025 KAZAM Market
 
 **Review Information**
 - [ ] Contact de review (nom, email, téléphone)
@@ -295,7 +295,7 @@ Téléchargez DJASSA maintenant et rejoignez la communauté du marketplace circu
 **Dans Google Play Console**
 - [ ] Connexion sur [Play Console](https://play.google.com/console/)
 - [ ] "Créer une application"
-- [ ] Nom : DJASSA
+- [ ] Nom : KAZAM Market
 - [ ] Langue par défaut : Français (France)
 - [ ] Type : Application
 - [ ] Gratuit/Payant : Gratuit
@@ -400,4 +400,4 @@ Pour les prochaines versions :
 
 ---
 
-Bonne chance pour la soumission de DJASSA ! 🚀
+Bonne chance pour la soumission de KAZAM Market ! 🚀

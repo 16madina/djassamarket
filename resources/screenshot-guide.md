@@ -72,7 +72,7 @@ Les captures d'écran sont cruciales pour la conversion. Elles sont souvent le p
 - 24-bit RGB
 - Utilisé en haut de votre fiche store
 
-## 🎨 Meilleures pratiques pour DJASSA
+## 🎨 Meilleures pratiques pour KAZAM Market
 
 ### Structure d'une bonne capture
 
@@ -90,7 +90,7 @@ Les captures d'écran sont cruciales pour la conversion. Elles sont souvent le p
 └─────────────────────┘
 ```
 
-### Captures essentielles pour DJASSA
+### Captures essentielles pour KAZAM Market
 
 1. **Écran d'accueil** 
    - Grille de catégories visible
@@ -182,7 +182,7 @@ npx cap run android
 - [TinyPNG](https://tinypng.com/) - Compression sans perte
 - [Squoosh](https://squoosh.app/) - Contrôle avancé
 
-## 📐 Template Figma pour DJASSA
+## 📐 Template Figma pour KAZAM Market
 
 Créez un template avec ces artboards :
 
@@ -236,7 +236,7 @@ Le Feature Graphic apparaît en haut de votre fiche Play Store.
 ### Contenu recommandé
 ```
 ┌────────────────────────────────────────────────┐
-│  [Logo DJASSA]    Marketplace de seconde vie  │
+│  [Logo KAZAM]    Marketplace de seconde vie  │
 │                                                │
 │  📱 Achetez & Vendez facilement               │
 │     • Milliers d'annonces                     │
@@ -275,4 +275,4 @@ Le Feature Graphic apparaît en haut de votre fiche Play Store.
 
 ## 💡 Astuce finale
 
-Vos captures d'écran sont votre vitrine. Investissez du temps pour les rendre parfaites. C'est ce qui convaincra les utilisateurs de télécharger DJASSA !
+Vos captures d'écran sont votre vitrine. Investissez du temps pour les rendre parfaites. C'est ce qui convaincra les utilisateurs de télécharger KAZAM Market !
