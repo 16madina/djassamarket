@@ -40,6 +40,8 @@ export const ListingsMap = ({
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
+  const [mapError, setMapError] = useState<string | null>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,35 +51,52 @@ export const ListingsMap = ({
     
     if (!mapboxToken) {
       console.error('Mapbox token not configured');
+      setMapError('Token Mapbox non configuré');
       return;
     }
 
-    mapboxgl.accessToken = mapboxToken;
-    
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [centerLng, centerLat],
-      zoom: zoom,
-    });
+    try {
+      mapboxgl.accessToken = mapboxToken;
+      
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [centerLng, centerLat],
+        zoom: zoom,
+      });
 
-    map.current.addControl(
-      new mapboxgl.NavigationControl({
-        visualizePitch: true,
-      }),
-      'top-right'
-    );
+      map.current.on('load', () => {
+        console.log('Map loaded successfully');
+        setMapLoaded(true);
+        setMapError(null);
+      });
 
-    map.current.addControl(
-      new mapboxgl.GeolocateControl({
-        positionOptions: {
-          enableHighAccuracy: true
-        },
-        trackUserLocation: true,
-        showUserHeading: true
-      }),
-      'top-right'
-    );
+      map.current.on('error', (e) => {
+        console.error('Map error:', e);
+        setMapError('Erreur de chargement de la carte');
+      });
+
+      map.current.addControl(
+        new mapboxgl.NavigationControl({
+          visualizePitch: true,
+        }),
+        'top-right'
+      );
+
+      map.current.addControl(
+        new mapboxgl.GeolocateControl({
+          positionOptions: {
+            enableHighAccuracy: true
+          },
+          trackUserLocation: true,
+          showUserHeading: true
+        }),
+        'top-right'
+      );
+    } catch (error) {
+      console.error('Error initializing map:', error);
+      setMapError('Erreur d\'initialisation de la carte');
+    }
 
     return () => {
       markersRef.current.forEach(marker => marker.remove());
@@ -184,6 +203,28 @@ export const ListingsMap = ({
 
   return (
     <div className="relative w-full h-full">
+      {mapError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/95 z-50">
+          <Card className="p-6 text-center max-w-md">
+            <MapPin className="h-16 w-16 mx-auto mb-4 text-destructive" />
+            <h3 className="font-semibold text-lg mb-2">Erreur de chargement</h3>
+            <p className="text-muted-foreground text-sm mb-4">{mapError}</p>
+            <Button onClick={() => window.location.reload()}>
+              Réessayer
+            </Button>
+          </Card>
+        </div>
+      )}
+      
+      {!mapLoaded && !mapError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-40">
+          <div className="flex flex-col items-center gap-3">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <p className="text-sm text-muted-foreground">Chargement de la carte...</p>
+          </div>
+        </div>
+      )}
+      
       <div ref={mapContainer} className="absolute inset-0 rounded-lg" />
       
       {selectedListing && (
