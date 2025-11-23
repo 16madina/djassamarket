@@ -65,6 +65,8 @@ export const ListingsMap = ({
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [swipeStartY, setSwipeStartY] = useState<number | null>(null);
+  const [swipeCurrentY, setSwipeCurrentY] = useState<number>(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -388,6 +390,36 @@ export const ListingsMap = ({
     };
   }, [listings, heatmapMode]);
 
+  // Gestion du swipe pour fermer la card
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setSwipeStartY(e.touches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (swipeStartY === null) return;
+    
+    const currentY = e.touches[0].clientY;
+    const deltaY = currentY - swipeStartY;
+    
+    // Ne permettre que le swipe vers le bas
+    if (deltaY > 0) {
+      setSwipeCurrentY(deltaY);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (swipeStartY === null) return;
+    
+    // Si le swipe dépasse 80px, fermer la card
+    if (swipeCurrentY > 80) {
+      setSelectedListing(null);
+    }
+    
+    // Reset
+    setSwipeStartY(null);
+    setSwipeCurrentY(0);
+  };
+
   return (
     <div className="relative w-full h-full">
       {mapError && (
@@ -415,8 +447,22 @@ export const ListingsMap = ({
       <div ref={mapContainer} className="absolute inset-0 rounded-lg" />
       
       {selectedListing && (
-        <Card className="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 p-0 overflow-hidden shadow-xl z-10 animate-in slide-in-from-bottom-4">
+        <Card 
+          className="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 p-0 overflow-hidden shadow-xl z-10 transition-transform touch-none"
+          style={{
+            transform: `translateY(${swipeCurrentY}px)`,
+            opacity: swipeCurrentY > 0 ? Math.max(0.5, 1 - swipeCurrentY / 200) : 1
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <div className="relative">
+            {/* Indicateur de swipe */}
+            <div className="w-full flex justify-center pt-2 pb-1">
+              <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+            </div>
+            
             <Button
               variant="ghost"
               size="icon"
