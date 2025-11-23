@@ -2,7 +2,7 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-marketplace-new.jpg";
-import bazaramLogo from "@/assets/bazaram-logo.png";
+import bazaramMarketLogo from "@/assets/bazaram-market-logo.png";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -23,13 +23,14 @@ const HeroSection = () => {
       
       <div className="relative h-full flex flex-col items-center justify-center px-4 text-center">
         <div className="flex flex-col items-center animate-fade-in mb-4">
-          <div className="flex items-center gap-2 md:gap-3">
-            <h1 className="text-2xl md:text-5xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-              Bienvenue au
-            </h1>
-            
-          </div>
-          
+          <h1 className="text-2xl md:text-4xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-4">
+            Bienvenue sur
+          </h1>
+          <img 
+            src={bazaramMarketLogo} 
+            alt="BAZARAM MARKET" 
+            className="h-20 md:h-32 w-auto object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]"
+          />
         </div>
         <p className="text-lg md:text-xl text-white/90 mb-8 max-w-2xl animate-fade-in" style={{
         animationDelay: "0.2s"
