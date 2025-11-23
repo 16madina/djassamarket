@@ -415,69 +415,64 @@ export const ListingsMap = ({
       <div ref={mapContainer} className="absolute inset-0 rounded-lg" />
       
       {selectedListing && (
-        <Card className="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 p-0 overflow-hidden shadow-xl z-10 animate-in slide-in-from-bottom-4">
+        <Card className="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 p-0 overflow-hidden shadow-xl z-10 animate-in slide-in-from-bottom-4">
           <div className="relative">
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-2 right-2 z-10 bg-background/80 hover:bg-background"
+              className="absolute top-1 right-1 z-10 h-7 w-7 bg-background/90 hover:bg-background backdrop-blur-sm"
               onClick={() => setSelectedListing(null)}
             >
-              <X className="h-4 w-4" />
+              <X className="h-3 w-3" />
             </Button>
             
-            {selectedListing.images?.[0] && (
-              <img
-                src={selectedListing.images[0]}
-                alt={selectedListing.title}
-                className="w-full h-48 object-cover"
-              />
-            )}
-            
-            <div className="p-4 space-y-3">
-              <div>
-                <h3 className="font-semibold text-lg line-clamp-2">
+            <div className="flex gap-3 p-3">
+              {selectedListing.images?.[0] && (
+                <img
+                  src={selectedListing.images[0]}
+                  alt={selectedListing.title}
+                  className="w-20 h-20 object-cover rounded-md flex-shrink-0"
+                />
+              )}
+              
+              <div className="flex-1 min-w-0 space-y-1">
+                <h3 className="font-semibold text-sm line-clamp-2">
                   {selectedListing.title}
                 </h3>
-                <p className="text-primary text-xl font-bold mt-1">
+                <p className="text-primary text-base font-bold">
                   {formatCurrency(selectedListing.price, selectedListing.currency)}
                 </p>
-              </div>
-
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4" />
-                <span>{selectedListing.location}</span>
-              </div>
-
-              {selectedListing.categories && (
-                <div className="text-sm text-muted-foreground">
-                  {selectedListing.categories.name}
+                
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <MapPin className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">{selectedListing.location}</span>
                 </div>
-              )}
-
-              <div className="flex gap-2 pt-2">
-                <Button
-                  onClick={() => navigate(`/listing/${selectedListing.id}`)}
-                  className="flex-1"
-                >
-                  Voir l'annonce
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => {
-                    if (navigator.geolocation) {
-                      navigator.geolocation.getCurrentPosition(() => {
-                        // Ouvrir dans l'app de navigation
-                        const city = selectedListing.location.split(',')[0].trim();
-                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(city)}`, '_blank');
-                      });
-                    }
-                  }}
-                >
-                  <Navigation className="h-4 w-4" />
-                </Button>
               </div>
+            </div>
+
+            <div className="flex gap-2 px-3 pb-3">
+              <Button
+                onClick={() => navigate(`/listing/${selectedListing.id}`)}
+                size="sm"
+                className="flex-1 h-8"
+              >
+                Voir
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => {
+                  if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(() => {
+                      const city = selectedListing.location.split(',')[0].trim();
+                      window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(city)}`, '_blank');
+                    });
+                  }
+                }}
+              >
+                <Navigation className="h-3 w-3" />
+              </Button>
             </div>
           </div>
         </Card>
