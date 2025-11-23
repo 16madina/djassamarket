@@ -26,7 +26,7 @@ const HeroSection = () => {
           <h1 className="text-2xl md:text-4xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-0">
             Bienvenue sur
           </h1>
-          <div className="relative">
+          <div className="relative animate-float">
             <img 
               src={bazaramMarketLogo} 
               alt="BAZARAM MARKET" 
