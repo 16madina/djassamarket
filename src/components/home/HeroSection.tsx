@@ -2,7 +2,7 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-marketplace-new.jpg";
-import djassaLogo from "@/assets/djassa-hero-logo.png";
+import BazaramLogo from "@/components/BazaramLogo";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -31,11 +31,7 @@ const HeroSection = () => {
             <h1 className="text-2xl md:text-5xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
               Bienvenue au
             </h1>
-            <img 
-              src={djassaLogo} 
-              alt="DJASSA" 
-              className="h-8 md:h-16 drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]"
-            />
+            <BazaramLogo className="h-8 md:h-16 drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]" />
           </div>
           <span className="text-lg md:text-3xl font-pacifico text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] self-end mr-4 md:mr-12">Market</span>
         </div>

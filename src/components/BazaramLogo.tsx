@@ -19,6 +19,12 @@ const BazaramLogo = ({ className = "" }: BazaramLogoProps) => {
               font-weight: 900;
               font-size: 100px;
             }
+            @media (prefers-color-scheme: dark) {
+              .brown-letter { fill: #CD853F; }
+              .black-letter { fill: #FFFFFF; }
+            }
+            .dark .brown-letter { fill: #CD853F; }
+            .dark .black-letter { fill: #FFFFFF; }
           `}
         </style>
       </defs>
