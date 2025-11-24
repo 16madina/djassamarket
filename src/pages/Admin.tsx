@@ -26,6 +26,8 @@ const Admin = () => {
   const [selectedListing, setSelectedListing] = useState<any>(null);
   const [messageContent, setMessageContent] = useState("");
   const [banReason, setBanReason] = useState("");
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
   
   // Filter states
   const [userSearch, setUserSearch] = useState("");
@@ -195,7 +197,8 @@ const Admin = () => {
       // Search filter
       const matchesSearch = userSearch === "" || 
         user.full_name?.toLowerCase().includes(userSearch.toLowerCase()) ||
-        user.phone?.includes(userSearch);
+        user.phone?.includes(userSearch) ||
+        (user as any).email?.toLowerCase().includes(userSearch.toLowerCase());
       
       // Status filter
       const matchesStatus = userStatusFilter === "all" ||
@@ -331,8 +334,35 @@ const Admin = () => {
     toast.info("Fonctionnalité de messagerie à implémenter avec un service externe");
   };
 
-  const handleSendEmail = async (email: string) => {
-    toast.info(`Email à envoyer à: ${email}`);
+  const handleSendEmail = async (email: string, subject: string, message: string) => {
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) {
+        toast.error("Session expirée");
+        return;
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-admin-email`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, subject, message }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de l\'envoi de l\'email');
+      }
+
+      toast.success("Email envoyé avec succès");
+    } catch (error) {
+      console.error('Error sending email:', error);
+      toast.error("Erreur lors de l'envoi de l'email");
+    }
   };
 
   const handleSendSMS = async (phone: string) => {
@@ -423,7 +453,7 @@ const Admin = () => {
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Rechercher par nom ou téléphone..."
+                      placeholder="Rechercher par nom, email ou téléphone..."
                       value={userSearch}
                       onChange={(e) => setUserSearch(e.target.value)}
                       className="pl-10"
@@ -522,6 +552,63 @@ const Admin = () => {
                           >
                             SMS
                           </Button>
+                        )}
+                        {(profile as any).email && (
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedUser(profile);
+                                  setEmailSubject("");
+                                  setEmailMessage("");
+                                }}
+                              >
+                                <Mail className="h-3 w-3 mr-1" />
+                                Email
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Envoyer un email</DialogTitle>
+                                <DialogDescription>
+                                  Envoyer un email à {(profile as any).email}
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="text-sm font-medium mb-1 block">Sujet</label>
+                                  <Input
+                                    placeholder="Sujet de l'email..."
+                                    value={emailSubject}
+                                    onChange={(e) => setEmailSubject(e.target.value)}
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium mb-1 block">Message</label>
+                                  <Textarea
+                                    placeholder="Votre message..."
+                                    value={emailMessage}
+                                    onChange={(e) => setEmailMessage(e.target.value)}
+                                    rows={6}
+                                  />
+                                </div>
+                              </div>
+                              <DialogFooter>
+                                <Button 
+                                  onClick={() => {
+                                    handleSendEmail((profile as any).email, emailSubject, emailMessage);
+                                    setEmailSubject("");
+                                    setEmailMessage("");
+                                  }}
+                                  disabled={!emailSubject || !emailMessage}
+                                >
+                                  Envoyer
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
                         )}
                         {profile.is_banned ? (
                           <Button
