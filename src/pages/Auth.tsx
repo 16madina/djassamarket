@@ -13,7 +13,7 @@ import { PrivacyPolicy } from "@/components/auth/PrivacyPolicy";
 import { TermsConditions } from "@/components/auth/TermsConditions";
 import { allCountries } from "@/data/westAfricaData";
 import { Eye, EyeOff, ArrowLeft, MapPin, Chrome } from "lucide-react";
-import bazaramMarketLogo from "@/assets/bazaram-market-logo.png";
+import bazaramLogo from "@/assets/bazaram-new-logo.png";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -328,8 +328,8 @@ const Auth = () => {
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               <img 
-                src={bazaramMarketLogo} 
-                alt="BAZARAM MARKET" 
+                src={bazaramLogo} 
+                alt="BAZARAM" 
                 className="h-16 w-auto object-contain"
               />
             </div>
