@@ -26,11 +26,13 @@ const HeroSection = () => {
           <h1 className="text-2xl md:text-4xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-0">
             Bienvenue sur
           </h1>
-          <img 
-            src={bazaramMarketLogo} 
-            alt="BAZARAM MARKET" 
-            className="h-24 md:h-40 w-auto object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.9)]"
-          />
+          <div className="bg-gradient-to-b from-black/40 via-black/30 to-transparent dark:from-white/20 dark:via-white/10 dark:to-transparent px-8 py-6 rounded-2xl backdrop-blur-sm">
+            <img 
+              src={bazaramMarketLogo} 
+              alt="BAZARAM MARKET" 
+              className="h-32 md:h-56 w-auto object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.9)]"
+            />
+          </div>
         </div>
         <p className="text-lg md:text-xl text-white font-semibold mb-8 max-w-2xl animate-fade-in bg-warm-earth/50 backdrop-blur-sm px-6 py-3 rounded-lg drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]" style={{
         animationDelay: "0.2s"
