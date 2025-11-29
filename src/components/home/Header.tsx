@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { LogIn, User, Moon, Sun } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { SystemNotifications } from "@/components/notifications/SystemNotifications";
-import bazaramLogo from "@/assets/bazaram-text-logo.png";
+import bazaramLogo from "@/assets/bazaram-new-logo.png";
 
 interface HeaderProps {
   isAuthenticated: boolean;
