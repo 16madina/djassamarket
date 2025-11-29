@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ import { NeighborhoodAutocomplete } from "@/components/listing/NeighborhoodAutoc
 const Publish = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -399,6 +400,10 @@ const Publish = () => {
 
       // Clear draft after successful submission
       localStorage.removeItem('listing_draft');
+
+      // Invalidate listings cache to show new listing immediately
+      queryClient.invalidateQueries({ queryKey: ["recent-listings"] });
+      queryClient.invalidateQueries({ queryKey: ["listings"] });
 
       toast({
         title: "Annonce publiée !",

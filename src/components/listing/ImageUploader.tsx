@@ -42,9 +42,17 @@ export const ImageUploader = ({ images, onImagesChange, maxImages = 10 }: ImageU
       }
     } catch (error: any) {
       errorTracker.logError('camera', 'Failed to select from gallery', error);
+      
+      let errorMessage = "Impossible d'accéder à vos photos.";
+      
+      // Erreur de permissions spécifique
+      if (error?.message?.includes('permission') || error?.message?.includes('denied')) {
+        errorMessage = "Accès refusé. Vérifiez les permissions de l'application dans les réglages de votre appareil.";
+      }
+      
       toast({
-        title: "Erreur",
-        description: "Impossible d'accéder à la galerie",
+        title: "Erreur d'accès à la galerie",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -56,7 +64,44 @@ export const ImageUploader = ({ images, onImagesChange, maxImages = 10 }: ImageU
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Non authentifié");
+      if (!user) {
+        toast({
+          title: "Connexion requise",
+          description: "Vous devez être connecté pour ajouter des photos. Veuillez vous reconnecter.",
+          variant: "destructive",
+        });
+        setUploading(false);
+        return;
+      }
+
+      // Validation des fichiers avant upload
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+      const maxSizeInBytes = 5 * 1024 * 1024; // 5 Mo
+
+      for (const file of files) {
+        // Vérifier la taille
+        if (file.size > maxSizeInBytes) {
+          const sizeInMB = (file.size / (1024 * 1024)).toFixed(1);
+          toast({
+            title: "Image trop volumineuse",
+            description: `"${file.name}" fait ${sizeInMB} Mo. La taille maximum est de 5 Mo. Essayez une photo plus petite.`,
+            variant: "destructive",
+          });
+          setUploading(false);
+          return;
+        }
+        
+        // Vérifier le format
+        if (!validTypes.includes(file.type.toLowerCase())) {
+          toast({
+            title: "Format non supporté",
+            description: `"${file.name}" n'est pas un format supporté. Utilisez JPG, PNG ou WEBP.`,
+            variant: "destructive",
+          });
+          setUploading(false);
+          return;
+        }
+      }
 
       // Upload 2-3 images à la fois (throttling)
       const chunks: File[][] = [];
@@ -104,12 +149,43 @@ export const ImageUploader = ({ images, onImagesChange, maxImages = 10 }: ImageU
       });
 
       performanceMonitor.endMeasure('image-upload');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Upload error:", error);
       errorTracker.logError('upload', 'Batch upload failed', error as Error);
+      
+      // Détection intelligente du type d'erreur
+      let errorTitle = "Échec de l'envoi";
+      let errorMessage = "Une erreur inattendue s'est produite";
+      
+      // Erreur d'authentification
+      if (error?.message?.includes('JWT') || error?.message?.includes('auth') || error?.status === 401) {
+        errorTitle = "Session expirée";
+        errorMessage = "Votre session a expiré. Veuillez vous reconnecter pour continuer.";
+      } 
+      // Erreur réseau/connexion
+      else if (error?.message?.includes('network') || error?.message?.includes('fetch') || error?.message?.includes('Failed to fetch')) {
+        errorTitle = "Problème de connexion";
+        errorMessage = "Vérifiez votre connexion internet et réessayez.";
+      }
+      // Erreur de stockage
+      else if (error?.message?.includes('storage') || error?.status === 500 || error?.statusCode === 500) {
+        errorTitle = "Erreur de stockage";
+        errorMessage = "Erreur serveur. Veuillez réessayer dans quelques instants.";
+      }
+      // Fichier trop gros (erreur serveur)
+      else if (error?.status === 413 || error?.statusCode === 413) {
+        errorTitle = "Image trop volumineuse";
+        errorMessage = "L'image est trop volumineuse pour être envoyée. Réduisez la taille de votre photo.";
+      }
+      // Erreur de permissions
+      else if (error?.status === 403 || error?.statusCode === 403 || error?.message?.includes('permission')) {
+        errorTitle = "Accès refusé";
+        errorMessage = "Vous n'avez pas la permission d'envoyer cette image. Vérifiez votre compte.";
+      }
+      
       toast({
-        title: "Erreur",
-        description: "Impossible de télécharger les images",
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
