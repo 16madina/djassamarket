@@ -1049,60 +1049,194 @@ const Admin = () => {
                 ) : (
                   filteredReports.map(report => (
                     <Card key={report.id} className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold">{report.listings?.title || "Annonce inconnue"}</h3>
-                          <p className="text-sm text-muted-foreground mt-1">Raison: {report.reason}</p>
-                          <p className="text-sm text-muted-foreground mt-1">Statut: {report.status}</p>
-                          <p className="text-sm text-muted-foreground mt-1">Signalé par: {report.reporter_profile?.full_name || "Inconnu"}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          {report.status === "pending" && (
-                            <>
-                              <Button size="sm" variant="outline" onClick={() => handleResolveReport(report.id)}>
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Résoudre
-                              </Button>
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button size="sm" variant="destructive">
-                                    <XCircle className="h-4 w-4 mr-1" />
-                                    Rejeter
+                      <div className="flex gap-4">
+                        {report.listings?.images?.[0] && (
+                          <div className="w-24 h-24 flex-shrink-0 rounded overflow-hidden bg-muted">
+                            <img 
+                              src={report.listings.images[0]} 
+                              alt={report.listings.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-lg">{report.listings?.title || "Annonce supprimée"}</h3>
+                              {report.listings?.price && (
+                                <p className="text-sm font-medium text-primary mt-1">
+                                  {report.listings.price.toLocaleString()} FCFA
+                                </p>
+                              )}
+                              <div className="mt-2 space-y-1">
+                                <p className="text-sm">
+                                  <span className="font-medium">Raison:</span>{" "}
+                                  <Badge variant={report.reason === 'fraud' || report.reason === 'inappropriate' ? 'destructive' : 'secondary'}>
+                                    {report.reason === 'inappropriate' ? 'Contenu inapproprié' : 
+                                     report.reason === 'fraud' ? 'Arnaque/Fraude' :
+                                     report.reason === 'spam' ? 'Spam' : 'Autre'}
+                                  </Badge>
+                                </p>
+                                {report.description && (
+                                  <p className="text-sm text-muted-foreground">
+                                    <span className="font-medium">Description:</span> {report.description}
+                                  </p>
+                                )}
+                                <p className="text-sm text-muted-foreground">
+                                  <span className="font-medium">Signalé par:</span> {report.reporter_profile?.full_name || "Inconnu"}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  <span className="font-medium">Date:</span> {new Date(report.created_at).toLocaleDateString('fr-FR', { 
+                                    day: '2-digit', 
+                                    month: 'long', 
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </p>
+                                <p className="text-sm">
+                                  <span className="font-medium">Statut:</span>{" "}
+                                  <Badge variant={
+                                    report.status === 'pending' ? 'default' :
+                                    report.status === 'resolved' ? 'secondary' : 'outline'
+                                  }>
+                                    {report.status === 'pending' ? 'En attente' :
+                                     report.status === 'resolved' ? 'Résolu' : 'Rejeté'}
+                                  </Badge>
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex flex-col gap-2 ml-4">
+                              {report.listings?.id && (
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  onClick={() => navigate(`/listing/${report.listings.id}`)}
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  Voir annonce
+                                </Button>
+                              )}
+                              {report.status === "pending" && (
+                                <>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button size="sm" variant="destructive">
+                                        <Ban className="h-4 w-4 mr-1" />
+                                        Supprimer + Bannir
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Supprimer l'annonce et bannir l'utilisateur ?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          Cette action va :
+                                          <ul className="list-disc list-inside mt-2 space-y-1">
+                                            <li>Supprimer définitivement l'annonce</li>
+                                            <li>Bannir le vendeur de la plateforme</li>
+                                            <li>Marquer le signalement comme résolu</li>
+                                            <li>Notifier l'utilisateur ayant signalé</li>
+                                          </ul>
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <Input
+                                        placeholder="Raison du bannissement..."
+                                        value={banReason}
+                                        onChange={(e) => setBanReason(e.target.value)}
+                                      />
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                        <AlertDialogAction 
+                                          onClick={async () => {
+                                            if (!report.listing_id) {
+                                              toast.error("Impossible de trouver l'annonce");
+                                              return;
+                                            }
+                                            
+                                            // Get listing to find user_id
+                                            const { data: listing } = await supabase
+                                              .from("listings")
+                                              .select("user_id")
+                                              .eq("id", report.listing_id)
+                                              .single();
+                                            
+                                            if (!listing?.user_id) {
+                                              toast.error("Impossible de trouver le vendeur");
+                                              return;
+                                            }
+                                            
+                                            // Delete listing
+                                            await supabase
+                                              .from("listings")
+                                              .delete()
+                                              .eq("id", report.listing_id);
+                                            
+                                            // Ban user
+                                            await handleBanUser(listing.user_id);
+                                            
+                                            // Resolve report
+                                            await handleResolveReport(report.id);
+                                            
+                                            toast.success("Annonce supprimée et vendeur banni");
+                                            setBanReason("");
+                                          }}
+                                          disabled={!banReason.trim()}
+                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                        >
+                                          Confirmer
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                  
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => handleResolveReport(report.id)}
+                                  >
+                                    <CheckCircle className="h-4 w-4 mr-1" />
+                                    Résoudre
                                   </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>Rejeter le signalement</DialogTitle>
-                                    <DialogDescription>Indiquez la raison du rejet</DialogDescription>
-                                  </DialogHeader>
-                                  <Textarea
-                                    placeholder="Notes pour le rejet..."
-                                    value={messageContent}
-                                    onChange={(e) => setMessageContent(e.target.value)}
-                                    rows={6}
-                                  />
-                                  <DialogFooter>
-                                    <Button variant="outline" onClick={() => setMessageContent("")}>
-                                      Annuler
-                                    </Button>
-                                    <Button
-                                      onClick={() => {
-                                        handleDismissReport(report.id, messageContent);
-                                        setMessageContent("");
-                                      }}
-                                      disabled={!messageContent.trim()}
-                                    >
-                                      Confirmer
-                                    </Button>
-                                  </DialogFooter>
-                                </DialogContent>
-                              </Dialog>
-                            </>
-                          )}
-                          <Button size="sm" variant="outline" onClick={() => navigate(`/listing/${report.listings?.id}`)}>
-                            <Eye className="h-4 w-4 mr-1" />
-                            Voir annonce
-                          </Button>
+                                  
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <Button size="sm" variant="ghost">
+                                        <XCircle className="h-4 w-4 mr-1" />
+                                        Rejeter
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                      <DialogHeader>
+                                        <DialogTitle>Rejeter le signalement</DialogTitle>
+                                        <DialogDescription>
+                                          Le signalement sera marqué comme non fondé.
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      <Textarea
+                                        placeholder="Notes pour le rejet (optionnel)..."
+                                        value={messageContent}
+                                        onChange={(e) => setMessageContent(e.target.value)}
+                                        rows={4}
+                                      />
+                                      <DialogFooter>
+                                        <Button variant="outline" onClick={() => setMessageContent("")}>
+                                          Annuler
+                                        </Button>
+                                        <Button
+                                          onClick={() => {
+                                            handleDismissReport(report.id, messageContent);
+                                            setMessageContent("");
+                                          }}
+                                        >
+                                          Confirmer
+                                        </Button>
+                                      </DialogFooter>
+                                    </DialogContent>
+                                  </Dialog>
+                                </>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </Card>

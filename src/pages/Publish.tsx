@@ -325,6 +325,27 @@ const Publish = () => {
       return;
     }
 
+    // Check for banned words before submission
+    try {
+      const contentToCheck = `${formData.title} ${formData.description}`.toLowerCase();
+      const { data: bannedWordData, error: bannedWordError } = await supabase
+        .rpc('check_banned_words', { content: contentToCheck });
+
+      if (bannedWordError) {
+        console.error('Error checking banned words:', bannedWordError);
+      } else if (bannedWordData && bannedWordData.length > 0) {
+        const foundWord = bannedWordData[0];
+        toast({
+          title: "Contenu inapproprié détecté",
+          description: `Votre annonce contient du contenu inapproprié ("${foundWord.found_word}"). Veuillez modifier votre titre ou description.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    } catch (error) {
+      console.error('Banned words check failed:', error);
+    }
+
     // Validate all fields
     validateField("title", formData.title);
     validateField("description", formData.description);

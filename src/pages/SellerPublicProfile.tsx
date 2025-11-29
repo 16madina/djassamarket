@@ -10,6 +10,7 @@ import { MapPin, Star, Shield, TrendingUp, Users, ArrowLeft, Package, CheckCircl
 import { FollowButton } from "@/components/profile/FollowButton";
 import { ReviewCard } from "@/components/profile/ReviewCard";
 import { SellerBadges } from "@/components/profile/SellerBadges";
+import { BlockUserDialog } from "@/components/profile/BlockUserDialog";
 import { useState, useEffect } from "react";
 import BottomNav from "@/components/BottomNav";
 
@@ -136,7 +137,14 @@ const SellerPublicProfile = () => {
                 )}
               </div>
               {currentUser && currentUser.id !== id && (
-                <FollowButton userId={id!} currentUserId={currentUser.id} />
+                <div className="flex flex-col gap-2">
+                  <FollowButton userId={id!} currentUserId={currentUser.id} />
+                  <BlockUserDialog 
+                    userId={id!} 
+                    userName={profile.full_name || "cet utilisateur"}
+                    onBlock={() => navigate(-1)}
+                  />
+                </div>
               )}
             </div>
 

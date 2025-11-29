@@ -36,35 +36,39 @@ const Terms = () => {
       content: "Il est interdit de publier : des articles contrefaits ou volés, des contenus illégaux ou offensants, des armes et substances dangereuses, des animaux vivants (sauf autorisation), et du contenu pornographique."
     },
     {
-      title: "8. Propriété intellectuelle",
+      title: "8. Politique de tolérance zéro",
+      content: "BAZARAM applique une politique de tolérance zéro concernant : les contenus illégaux, offensants, discriminatoires ; les comportements abusifs, harcèlement, menaces ; les arnaques, fraudes, spam ; les contenus violents, pornographiques, ou inappropriés. Tout utilisateur violant ces règles sera immédiatement banni de la plateforme. Nous nous engageons à traiter tous les signalements sous 24 heures."
+    },
+    {
+      title: "9. Propriété intellectuelle",
       content: "Tout le contenu de BAZARAM (logo, interface, textes) est protégé par le droit d'auteur. En publiant du contenu, vous accordez à BAZARAM une licence d'utilisation. Vous garantissez détenir les droits sur le contenu publié."
     },
     {
-      title: "9. Modération et vérification",
+      title: "10. Modération et vérification",
       content: "Nous nous réservons le droit de : supprimer tout contenu inapproprié, suspendre ou bannir des comptes en cas de violation, modérer les annonces avant publication. Le badge 'Vendeur vérifié' est attribué aux utilisateurs ayant complété le processus de vérification d'identité (pièce d'identité, email vérifié) et ayant maintenu une bonne réputation (minimum 5 transactions complétées avec note moyenne ≥4/5)."
     },
     {
-      title: "10. Limitation de responsabilité",
+      title: "11. Limitation de responsabilité",
       content: "BAZARAM n'est pas responsable : de la qualité des articles vendus, des litiges entre utilisateurs, des pertes financières, et des dommages indirects. Utilisez le service à vos propres risques."
     },
     {
-      title: "11. Protection des données",
+      title: "12. Protection des données",
       content: "Nous collectons et traitons vos données conformément à notre Politique de confidentialité et au RGPD. Vos données ne seront pas vendues à des tiers."
     },
     {
-      title: "12. Modifications des conditions",
+      title: "13. Modifications des conditions",
       content: "Nous pouvons modifier ces conditions à tout moment. Les utilisateurs seront notifiés des changements importants. Continuer à utiliser le service après modification implique acceptation."
     },
     {
-      title: "13. Résiliation",
+      title: "14. Résiliation",
       content: "Vous pouvez supprimer votre compte à tout moment. Nous pouvons suspendre votre compte en cas de violation. Les obligations contractuelles persistent après résiliation."
     },
     {
-      title: "14. Droit applicable et juridiction",
+      title: "15. Droit applicable et juridiction",
       content: "Ces conditions sont régies par les lois du pays où BAZARAM est enregistré. Tout litige sera soumis aux tribunaux compétents de cette juridiction."
     },
     {
-      title: "15. Contact",
+      title: "16. Contact",
       content: "Pour toute question concernant ces conditions, contactez-nous via la page 'Contacter le support'."
     }
   ];

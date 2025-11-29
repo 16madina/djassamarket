@@ -47,6 +47,30 @@ export type Database = {
         }
         Relationships: []
       }
+      banned_words: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          severity: string
+          word: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          severity?: string
+          word: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          severity?: string
+          word?: string
+        }
+        Relationships: []
+      }
       blocked_users: {
         Row: {
           blocked_id: string
@@ -871,6 +895,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_banned_words: {
+        Args: { content: string }
+        Returns: {
+          found_word: string
+          severity: string
+        }[]
+      }
       create_system_notification: {
         Args: {
           p_message: string
