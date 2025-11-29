@@ -30,7 +30,7 @@ const HeroSection = () => {
             <img 
               src={bazaramMarketLogo} 
               alt="BAZARAM MARKET" 
-              className="h-24 md:h-40 w-auto object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] relative z-10"
+              className="h-24 md:h-40 w-auto object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] relative z-10 dark:invert"
             />
             {/* Effet de brillance animé */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_3s_ease-in-out_infinite] -z-0" 
