@@ -328,7 +328,7 @@ const ListingDetail = () => {
 
                 <div className="pt-4 border-t">
                   <h2 className="font-semibold text-lg mb-3">Description</h2>
-                  <p className="text-muted-foreground whitespace-pre-wrap">
+                  <p className="text-muted-foreground whitespace-pre-wrap break-words overflow-wrap-anywhere">
                     {listing.description}
                   </p>
                 </div>
