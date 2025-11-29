@@ -65,7 +65,7 @@ export const DeleteAccountDialog = ({ open, onOpenChange }: DeleteAccountDialogP
       setShowDownloadOption(false);
     } catch (error) {
       console.error("Error downloading data:", error);
-      toast.error("Erreur lors du téléchargement des données");
+      toast.error("Impossible de télécharger. Vérifiez votre connexion.");
     }
   };
 
@@ -83,23 +83,23 @@ export const DeleteAccountDialog = ({ open, onOpenChange }: DeleteAccountDialogP
         return;
       }
 
-      // Supprimer les données de l'utilisateur
-      // Les cascades sont gérées par la base de données
-      await supabase.from("profiles").delete().eq("id", user.id);
+      // Appeler l'edge function pour supprimer toutes les données ET le compte auth
+      const { error: deleteError } = await supabase.functions.invoke('delete-user-account', {
+        body: { userId: user.id }
+      });
 
-      // Supprimer le compte utilisateur
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      if (deleteError) {
+        throw deleteError;
+      }
 
-      // Note: La suppression complète du compte Auth nécessite des permissions admin
-      // Dans un environnement de production, vous devriez avoir un edge function
-      // qui gère cela avec les permissions appropriées
+      // Déconnexion après suppression
+      await supabase.auth.signOut();
 
-      toast.success("Compte supprimé avec succès");
+      toast.success("Compte supprimé définitivement");
       navigate("/auth");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting account:", error);
-      toast.error("Erreur lors de la suppression du compte");
+      toast.error(error.message || "Impossible de supprimer. Vérifiez votre connexion.");
     } finally {
       setIsDeleting(false);
     }
@@ -115,17 +115,22 @@ export const DeleteAccountDialog = ({ open, onOpenChange }: DeleteAccountDialogP
           </div>
           <AlertDialogDescription className="space-y-4 pt-4">
             <div className="text-foreground font-semibold">
-              Cette action est irréversible. Les données suivantes seront définitivement supprimées :
+              ⚠️ Cette action est PERMANENTE et IRRÉVERSIBLE
             </div>
             
-            <ul className="list-disc list-inside space-y-2 text-sm">
-              <li>Votre profil et informations personnelles</li>
-              <li>Toutes vos annonces publiées</li>
-              <li>Vos messages et conversations</li>
-              <li>Vos favoris et recherches sauvegardées</li>
-              <li>Vos avis et évaluations</li>
-              <li>Votre historique de transactions</li>
-            </ul>
+            <div className="bg-destructive/10 p-3 rounded-lg text-sm space-y-2">
+              <p className="font-medium text-destructive">Toutes ces données seront définitivement supprimées :</p>
+              <ul className="list-disc list-inside space-y-1 text-xs">
+                <li>Votre profil et informations personnelles</li>
+                <li>Toutes vos annonces publiées (actives et archivées)</li>
+                <li>Tous vos messages et conversations</li>
+                <li>Vos favoris et préférences</li>
+                <li>Vos avis reçus et donnés</li>
+                <li>Votre historique de transactions</li>
+                <li>Vos abonnés et abonnements</li>
+              </ul>
+              <p className="font-medium text-destructive mt-2">Vous ne pourrez JAMAIS récupérer ces données.</p>
+            </div>
 
             {showDownloadOption && (
               <div className="bg-muted p-4 rounded-lg space-y-2">
@@ -145,17 +150,20 @@ export const DeleteAccountDialog = ({ open, onOpenChange }: DeleteAccountDialogP
               </div>
             )}
 
-            <div className="space-y-2 pt-2">
-              <Label htmlFor="confirm" className="text-foreground">
-                Pour confirmer, tapez <span className="font-bold">SUPPRIMER</span>
-              </Label>
-              <Input
-                id="confirm"
-                value={confirmText}
-                onChange={(e) => setConfirmText(e.target.value)}
-                placeholder="Tapez SUPPRIMER"
-                className="uppercase"
-              />
+            <div className="space-y-3 pt-2">
+              <div className="flex items-start gap-2 p-3 bg-muted rounded-lg">
+                <input 
+                  type="checkbox" 
+                  id="understand" 
+                  checked={confirmText === "SUPPRIMER"}
+                  onChange={(e) => setConfirmText(e.target.checked ? "SUPPRIMER" : "")}
+                  className="mt-1"
+                />
+                <Label htmlFor="understand" className="text-sm cursor-pointer">
+                  Je comprends que cette action est <span className="font-bold text-destructive">définitive et irréversible</span>. 
+                  Toutes mes données seront <span className="font-bold">supprimées de façon permanente</span> et je ne pourrai jamais les récupérer.
+                </Label>
+              </div>
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>

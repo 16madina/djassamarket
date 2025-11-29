@@ -32,11 +32,22 @@ const AccountManagement = () => {
         return;
       }
 
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from("profiles")
         .select("phone, city, country")
         .eq("id", user.id)
         .single();
+
+      if (error) {
+        console.error("Error loading user data:", error);
+        toast.error("Impossible de charger. Vérifiez votre connexion.", {
+          action: {
+            label: "Réessayer",
+            onClick: loadUserData,
+          },
+        });
+        return;
+      }
 
       setFormData({
         email: user.email || "",
@@ -46,7 +57,12 @@ const AccountManagement = () => {
       });
     } catch (error) {
       console.error("Error loading user data:", error);
-      toast.error("Erreur lors du chargement des données");
+      toast.error("Impossible de charger. Vérifiez votre connexion.", {
+        action: {
+          label: "Réessayer",
+          onClick: loadUserData,
+        },
+      });
     }
   };
 
@@ -63,7 +79,15 @@ const AccountManagement = () => {
         const { error: emailError } = await supabase.auth.updateUser({
           email: formData.email,
         });
-        if (emailError) throw emailError;
+        if (emailError) {
+          toast.error("Impossible de mettre à jour l'email. Vérifiez votre connexion.", {
+            action: {
+              label: "Réessayer",
+              onClick: () => handleSubmit(e),
+            },
+          });
+          return;
+        }
         toast.success("Un email de confirmation a été envoyé à votre nouvelle adresse");
       }
 
@@ -77,12 +101,25 @@ const AccountManagement = () => {
         })
         .eq("id", user.id);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        toast.error("Impossible de sauvegarder. Vérifiez votre connexion.", {
+          action: {
+            label: "Réessayer",
+            onClick: () => handleSubmit(e),
+          },
+        });
+        return;
+      }
 
       toast.success("Informations mises à jour avec succès");
     } catch (error: any) {
       console.error("Error updating user data:", error);
-      toast.error(error.message || "Erreur lors de la mise à jour");
+      toast.error("Impossible de sauvegarder. Vérifiez votre connexion.", {
+        action: {
+          label: "Réessayer",
+          onClick: () => handleSubmit(e),
+        },
+      });
     } finally {
       setLoading(false);
     }
