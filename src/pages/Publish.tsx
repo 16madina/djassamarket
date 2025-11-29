@@ -534,7 +534,7 @@ const Publish = () => {
                     placeholder="50000"
                     required={!formData.isFree}
                     min="0"
-                    step="1000"
+                    step="1"
                     disabled={formData.isFree}
                     className={formData.isFree ? "bg-muted" : errors.price ? "border-destructive" : formData.price && parseFloat(formData.price) > 0 ? "border-green-500" : ""}
                   />
