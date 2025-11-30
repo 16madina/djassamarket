@@ -49,7 +49,7 @@ const HeroSection = () => {
       
       <div className="relative h-full flex flex-col items-center justify-center px-4 text-center">
         <div className="flex flex-col items-center animate-fade-in mb-4">
-          <h1 className="text-2xl md:text-4xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-0">
+          <h1 className="text-2xl md:text-4xl text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-0 mx-[6px] my-0 px-0 py-0 font-serif font-extrabold">
             Bienvenue sur
           </h1>
           <div className="bg-gradient-to-b from-black/15 via-black/10 to-transparent dark:from-white/15 dark:via-white/8 dark:to-transparent px-4 py-3 rounded-xl backdrop-blur-sm">
