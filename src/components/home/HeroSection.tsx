@@ -6,44 +6,44 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { useHeroCarousel } from "@/hooks/useHeroCarousel";
-
 const HeroSection = () => {
-  const { t } = useLanguage();
+  const {
+    t
+  } = useLanguage();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const { currentImage } = useHeroCarousel();
+  const {
+    currentImage
+  } = useHeroCarousel();
   const [parallaxOffset, setParallaxOffset] = useState(0);
   const heroRef = useRef<HTMLDivElement>(null);
-  
+
   // Effet parallaxe au scroll
   useEffect(() => {
     const handleScroll = () => {
       if (heroRef.current) {
         const scrolled = window.scrollY;
         const heroHeight = heroRef.current.offsetHeight;
-        
+
         // Calculer l'offset parallaxe (mouvement subtil)
         // Le hero bouge plus lentement que le scroll (effet parallaxe)
         const offset = Math.min(scrolled * 0.5, heroHeight * 0.3);
         setParallaxOffset(offset);
       }
     };
-    
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('scroll', handleScroll, {
+      passive: true
+    });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-  
   return <div ref={heroRef} className="relative h-[400px] md:h-[500px] overflow-hidden">
       {/* Image de fond avec effet parallaxe */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center transition-transform duration-100 ease-out"
-        style={{
-          backgroundImage: `url(${currentImage})`,
-          backgroundPosition: 'center center',
-          backgroundSize: 'cover',
-          transform: `translateY(${parallaxOffset}px)`,
-        }}
-      >
+      <div className="absolute inset-0 bg-cover bg-center transition-transform duration-100 ease-out" style={{
+      backgroundImage: `url(${currentImage})`,
+      backgroundPosition: 'center center',
+      backgroundSize: 'cover',
+      transform: `translateY(${parallaxOffset}px)`
+    }}>
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/25 to-background" />
       </div>
       
@@ -54,12 +54,8 @@ const HeroSection = () => {
           </h1>
           <div className="bg-gradient-to-b from-black/15 via-black/10 to-transparent dark:from-white/15 dark:via-white/8 dark:to-transparent px-4 py-3 rounded-xl backdrop-blur-sm">
             <div className="flex flex-col items-start">
-              <img 
-                src={ayokaMarketLogo} 
-                alt="AYOKA" 
-                className="h-32 md:h-56 w-auto object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.9)]"
-              />
-              <p className="text-4xl md:text-6xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] -mt-6 md:-mt-10 ml-[23%]">
+              <img src={ayokaMarketLogo} alt="AYOKA" className="h-32 md:h-56 w-auto object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.9)]" />
+              <p className="text-4xl md:text-6xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] -mt-6 md:-mt-10 ml-[23%] mx-[43px]">
                 Market
               </p>
             </div>
