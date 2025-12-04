@@ -14,7 +14,10 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 0,
       launchAutoHide: true,
-      showSpinner: false
+      launchFadeOutDuration: 0,
+      showSpinner: false,
+      splashFullScreen: false,
+      splashImmersive: false
     },
     Camera: {
       android: {
