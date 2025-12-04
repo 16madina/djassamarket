@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Fichier de référence pour iOS Info.plist
+  Après avoir exécuté 'npx cap add ios', modifiez ios/App/App/Info.plist
+  et ajoutez la clé CFBundleDisplayName si elle n'existe pas
+-->
+<plist version="1.0">
+<dict>
+    <!-- Nom d'affichage sur l'écran d'accueil (sous l'icône) -->
+    <key>CFBundleDisplayName</key>
+    <string>AYOKA</string>
+    
+    <!-- Nom complet de l'application -->
+    <key>CFBundleName</key>
+    <string>AYOKA MARKET</string>
+    
+    <!-- Identifiant du bundle -->
+    <key>CFBundleIdentifier</key>
+    <string>com.ayoka.market</string>
+    
+    <!-- Version de l'application -->
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    
+    <!-- Numéro de build -->
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    
+    <!-- Permissions requises -->
+    <key>NSCameraUsageDescription</key>
+    <string>Nous avons besoin d'accéder à votre appareil photo pour prendre des photos de vos articles à vendre</string>
+    
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Nous avons besoin d'accéder à votre galerie pour sélectionner des photos de vos articles</string>
+    
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Nous utilisons votre position pour estimer la distance avec les annonceurs et améliorer vos résultats de recherche</string>
+    
+    <key>NSFaceIDUsageDescription</key>
+    <string>Utilisez Face ID pour vous authentifier rapidement et en toute sécurité</string>
+</dict>
+</plist>
