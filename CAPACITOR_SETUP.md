@@ -1,6 +1,17 @@
 # Configuration Capacitor
 
-## Configuration Java 17 pour Android
+## Configuration Android après `npx cap add android`
+
+### 1. Activer AndroidX (OBLIGATOIRE)
+
+Modifiez le fichier `android/gradle.properties` et ajoutez ces lignes à la fin :
+
+```properties
+android.useAndroidX=true
+android.enableJetifier=true
+```
+
+### 2. Configuration Java 17
 
 Après avoir exécuté `npx cap add android`, vous devez configurer Java 17 :
 
