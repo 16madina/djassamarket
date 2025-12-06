@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { ChevronLeft, ChevronRight, X, Hand } from "lucide-react";
+import { X, Hand } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import useEmblaCarousel from "embla-carousel-react";
@@ -13,19 +13,19 @@ export const ImageGallery = ({ images, title }: ImageGalleryProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
+  const [dialogEmblaRef, dialogEmblaApi] = useEmblaCarousel({ loop: true, startIndex: currentIndex });
 
-  const scrollPrev = useCallback(() => {
-    if (emblaApi) emblaApi.scrollPrev();
-  }, [emblaApi]);
-
-  const scrollNext = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext();
-  }, [emblaApi]);
+  const [dialogIndex, setDialogIndex] = useState(0);
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
     setCurrentIndex(emblaApi.selectedScrollSnap());
   }, [emblaApi]);
+
+  const onDialogSelect = useCallback(() => {
+    if (!dialogEmblaApi) return;
+    setDialogIndex(dialogEmblaApi.selectedScrollSnap());
+  }, [dialogEmblaApi]);
 
   useEffect(() => {
     if (!emblaApi) return;
@@ -35,6 +35,22 @@ export const ImageGallery = ({ images, title }: ImageGalleryProps) => {
       emblaApi.off("select", onSelect);
     };
   }, [emblaApi, onSelect]);
+
+  useEffect(() => {
+    if (!dialogEmblaApi) return;
+    onDialogSelect();
+    dialogEmblaApi.on("select", onDialogSelect);
+    return () => {
+      dialogEmblaApi.off("select", onDialogSelect);
+    };
+  }, [dialogEmblaApi, onDialogSelect]);
+
+  // Sync dialog carousel to current index when opening
+  useEffect(() => {
+    if (isOpen && dialogEmblaApi) {
+      dialogEmblaApi.scrollTo(currentIndex, true);
+    }
+  }, [isOpen, dialogEmblaApi, currentIndex]);
 
   if (!images || images.length === 0) {
     return (
@@ -126,7 +142,7 @@ export const ImageGallery = ({ images, title }: ImageGalleryProps) => {
         )}
       </div>
 
-      {/* Full screen dialog */}
+      {/* Full screen dialog with swipe */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-w-screen-xl h-[90vh] p-0">
           <div className="relative w-full h-full flex items-center justify-center bg-black">
@@ -139,33 +155,31 @@ export const ImageGallery = ({ images, title }: ImageGalleryProps) => {
               <X className="h-6 w-6" />
             </Button>
 
-            <img
-              src={images[currentIndex]}
-              alt={`${title} - Image ${currentIndex + 1}`}
-              className="max-w-full max-h-full object-contain"
-            />
+            {/* Swipeable dialog carousel */}
+            <div className="w-full h-full overflow-hidden" ref={dialogEmblaRef}>
+              <div className="flex h-full">
+                {images.map((image, index) => (
+                  <div key={index} className="flex-[0_0_100%] min-w-0 flex items-center justify-center h-full">
+                    <img
+                      src={image}
+                      alt={`${title} - Image ${index + 1}`}
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
 
             {images.length > 1 && (
               <>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="absolute left-4 top-1/2 -translate-y-1/2"
-                  onClick={scrollPrev}
-                >
-                  <ChevronLeft className="h-6 w-6" />
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="absolute right-4 top-1/2 -translate-y-1/2"
-                  onClick={scrollNext}
-                >
-                  <ChevronRight className="h-6 w-6" />
-                </Button>
+                {/* Swipe indicator */}
+                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/50 text-white px-3 py-1.5 rounded-full text-xs z-10 animate-pulse">
+                  <Hand className="h-3 w-3" />
+                  <span>Glisser</span>
+                </div>
 
                 <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-black/80 text-white px-4 py-2 rounded-full">
-                  {currentIndex + 1} / {images.length}
+                  {dialogIndex + 1} / {images.length}
                 </div>
               </>
             )}
