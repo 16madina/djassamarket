@@ -57,7 +57,7 @@ export const ImageGallery = ({ images, title }: ImageGalleryProps) => {
                   className="flex-[0_0_100%] min-w-0"
                   onClick={() => setIsOpen(true)}
                 >
-                  <div className="aspect-square relative cursor-pointer">
+                  <div className="aspect-[4/3] relative cursor-pointer">
                     <img
                       src={image}
                       alt={`${title} - Image ${index + 1}`}
