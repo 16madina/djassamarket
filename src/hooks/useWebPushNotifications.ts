@@ -36,11 +36,8 @@ export const useWebPushNotifications = () => {
         await registerServiceWorker();
         return true;
       } else if (permission === 'denied') {
-        toast({
-          title: 'Notifications désactivées',
-          description: 'Vous pouvez les activer dans les paramètres de votre navigateur',
-          variant: 'destructive'
-        });
+        // Ne pas afficher de toast automatiquement quand l'utilisateur refuse
+        console.log('Notification permission denied by user');
       }
       return false;
     } catch (error) {
