@@ -54,11 +54,8 @@ export const useNativePushNotifications = () => {
           permissionStatus: 'denied',
           isLoading: false 
         }));
-        toast({
-          title: 'Notifications désactivées',
-          description: 'Activez les notifications dans les réglages de votre appareil',
-          variant: 'destructive'
-        });
+        // Ne pas afficher de toast automatiquement quand l'utilisateur refuse
+        console.log('Push notification permission denied by user');
         return false;
       }
 

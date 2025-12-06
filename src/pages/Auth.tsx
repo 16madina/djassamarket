@@ -100,11 +100,7 @@ const Auth = () => {
       },
       (error) => {
         console.log('Geolocation permission denied:', error);
-        toast({
-          title: "Permission refusée",
-          description: "Veuillez autoriser l'accès à votre localisation",
-          variant: "destructive",
-        });
+        // Ne pas afficher de toast d'erreur - l'utilisateur peut sélectionner manuellement
       }
     );
   };
