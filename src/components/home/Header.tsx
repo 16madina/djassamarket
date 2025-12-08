@@ -73,26 +73,25 @@ const Header = ({ isAuthenticated }: HeaderProps) => {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pt-safe">
       <div className="container flex h-16 items-center justify-between px-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <img 
             src={ayokaLogo} 
             alt="AYOKA MARKET" 
-            className="h-16 w-auto cursor-pointer transition-all duration-300 hover:scale-105 object-contain dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]"
+            className="h-14 w-auto cursor-pointer transition-all duration-300 hover:scale-105 object-contain dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]"
             onClick={() => navigate("/")}
           />
+          {/* User location display - visible on all screens */}
+          {(userLocation || isLoadingLocation) && (
+            <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
+              <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              {isLoadingLocation ? (
+                <Loader2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 animate-spin" />
+              ) : (
+                <span className="truncate max-w-[100px] sm:max-w-[150px]">{userLocation}</span>
+              )}
+            </div>
+          )}
         </div>
-
-        {/* User location display */}
-        {(userLocation || isLoadingLocation) && (
-          <div className="hidden sm:flex items-center gap-1.5 text-sm text-muted-foreground">
-            <MapPin className="h-3.5 w-3.5" />
-            {isLoadingLocation ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <span className="truncate max-w-[150px]">{userLocation}</span>
-            )}
-          </div>
-        )}
 
         <nav className="flex items-center gap-3">
           <Button
