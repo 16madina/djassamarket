@@ -9,7 +9,7 @@ import { SellerProfile } from "@/components/listing/SellerProfile";
 import { FavoriteButton } from "@/components/listing/FavoriteButton";
 import { ReportDialog } from "@/components/listing/ReportDialog";
 import LocationMap from "@/components/listing/LocationMap";
-import { ArrowLeft, MapPin, Eye, MessageCircle, Share2, Heart } from "lucide-react";
+import { ArrowLeft, MapPin, Eye, MessageCircle, Share2, Heart, Navigation } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
@@ -156,6 +156,32 @@ const ListingDetail = () => {
     };
 
     createConversation();
+  };
+
+  const handleOpenDirections = () => {
+    if (!listing) return;
+
+    const { latitude, longitude, location } = listing;
+    
+    // Check if iOS device
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    
+    if (latitude && longitude) {
+      // Use coordinates if available
+      if (isIOS) {
+        window.open(`maps://maps.apple.com/?daddr=${latitude},${longitude}&dirflg=d`, "_blank");
+      } else {
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`, "_blank");
+      }
+    } else {
+      // Fallback to address search
+      const encodedLocation = encodeURIComponent(location);
+      if (isIOS) {
+        window.open(`maps://maps.apple.com/?daddr=${encodedLocation}&dirflg=d`, "_blank");
+      } else {
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodedLocation}`, "_blank");
+      }
+    }
   };
 
   const handleShare = async (method?: string) => {
@@ -350,6 +376,14 @@ const ListingDetail = () => {
               latitude={listing.latitude} 
               longitude={listing.longitude} 
             />
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={handleOpenDirections}
+            >
+              <Navigation className="h-4 w-4" />
+              Itinéraire
+            </Button>
           </div>
         </div>
       </div>
