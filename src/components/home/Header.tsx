@@ -67,7 +67,7 @@ const Header = ({
             <img src={ayokaLogo} alt="AYOKA MARKET" className="h-10 sm:h-14 w-auto cursor-pointer transition-all duration-300 hover:scale-105 object-contain dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" onClick={() => navigate("/")} />
             {/* Location directly below logo on mobile */}
             {(userLocation || isLoadingLocation) && (
-              <div className="flex sm:hidden items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
+              <div className="flex sm:hidden items-center gap-1 text-[10px] text-muted-foreground -mt-1">
                 <MapPin className="h-2.5 w-2.5" />
                 {isLoadingLocation ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <span className="truncate max-w-[150px]">{userLocation}</span>}
               </div>
