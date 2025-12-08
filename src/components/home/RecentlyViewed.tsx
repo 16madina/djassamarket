@@ -89,7 +89,7 @@ const RecentlyViewed = () => {
                   className="cursor-pointer group"
                   onClick={() => window.location.href = `/listing/${listing.id}`}
                 >
-                  <div className="aspect-square rounded-lg overflow-hidden mb-1.5 bg-muted">
+                <div className="aspect-square rounded-lg overflow-hidden mb-1.5 bg-muted relative">
                     {listing.images?.[0] ? (
                       <img
                         src={listing.images[0]}
@@ -99,6 +99,11 @@ const RecentlyViewed = () => {
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                         Pas d'image
+                      </div>
+                    )}
+                    {listing.price === 0 && (
+                      <div className="absolute top-1 left-1 bg-green-500 text-white text-[9px] font-medium px-1.5 py-0.5 rounded">
+                        Gratuit
                       </div>
                     )}
                   </div>

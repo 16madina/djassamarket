@@ -121,8 +121,17 @@ const Favorites = () => {
                         </Button>
                       </div>
                       <p className="text-lg font-bold text-primary mb-1">
-                        {formatPrice(listing.price, userProfile?.currency || "FCFA")}
+                        {listing.price === 0 ? (
+                          <span className="text-green-600">Gratuit</span>
+                        ) : (
+                          formatPrice(listing.price, userProfile?.currency || "FCFA")
+                        )}
                       </p>
+                      {listing.price === 0 && (
+                        <Badge className="bg-green-500 text-white text-xs font-medium mb-1 w-fit">
+                          Gratuit
+                        </Badge>
+                      )}
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Badge variant="secondary" className="text-xs">
                           {listing.categories?.name}

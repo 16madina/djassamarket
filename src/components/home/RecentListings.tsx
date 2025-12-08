@@ -256,7 +256,16 @@ const RecentListings = () => {
   const getBadges = (listing: any) => {
     const badges: JSX.Element[] = [];
     
-    // 1. Priorité: État (condition) - toujours affiché
+    // 1. Priorité haute: Badge Gratuit pour les articles à prix 0
+    if (listing.price === 0) {
+      badges.push(
+        <Badge key="gratuit" className="bg-green-500 text-white backdrop-blur-sm text-xs font-medium">
+          Gratuit
+        </Badge>
+      );
+    }
+    
+    // 2. État (condition)
     if (listing.condition) {
       badges.push(
         <Badge key="condition" className="bg-accent/90 text-accent-foreground backdrop-blur-sm text-xs font-medium">
@@ -264,9 +273,6 @@ const RecentListings = () => {
         </Badge>
       );
     }
-    
-    // Note: Badge proximité supprimé car toutes les annonces affichées sont déjà locales
-    // (filtrées par ville/pays), donc "À proximité" perd son sens
     
     return badges.slice(0, 2); // Maximum 2 badges
   };
