@@ -334,6 +334,13 @@ const Search = () => {
                       Pas d'image
                     </div>
                   )}
+                  <div className="absolute top-2 left-2 flex flex-col gap-1">
+                    {listing.price === 0 && (
+                      <Badge className="bg-green-500 text-white text-xs font-medium">
+                        Gratuit
+                      </Badge>
+                    )}
+                  </div>
                   <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
                     {listing.categories?.name}
                   </Badge>

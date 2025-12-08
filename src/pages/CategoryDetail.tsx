@@ -236,11 +236,18 @@ const CategoryDetail = () => {
                             <MapPin className="h-12 w-12 opacity-20 text-muted-foreground" />
                           </div>
                         )}
-                        {listing.condition && (
-                          <Badge className="absolute top-2 left-2 bg-accent/90 text-accent-foreground backdrop-blur-sm text-xs">
-                            {listing.condition === 'new' ? 'Neuf' : listing.condition === 'like-new' ? 'Comme neuf' : 'Usagé'}
-                          </Badge>
-                        )}
+                        <div className="absolute top-2 left-2 flex flex-col gap-1">
+                          {listing.price === 0 && (
+                            <Badge className="bg-green-500 text-white backdrop-blur-sm text-xs font-medium">
+                              Gratuit
+                            </Badge>
+                          )}
+                          {listing.condition && (
+                            <Badge className="bg-accent/90 text-accent-foreground backdrop-blur-sm text-xs">
+                              {listing.condition === 'new' ? 'Neuf' : listing.condition === 'like-new' ? 'Comme neuf' : 'Usagé'}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       <div className="p-3">
                         <p className="font-semibold text-lg text-primary mb-1">
@@ -296,11 +303,18 @@ const CategoryDetail = () => {
                         <MapPin className="h-12 w-12 opacity-20 text-muted-foreground" />
                       </div>
                     )}
-                    {listing.condition && (
-                      <Badge className="absolute top-2 left-2 bg-accent/90 text-accent-foreground backdrop-blur-sm text-xs">
-                        {listing.condition === 'new' ? 'Neuf' : listing.condition === 'like-new' ? 'Comme neuf' : 'Usagé'}
-                      </Badge>
-                    )}
+                    <div className="absolute top-2 left-2 flex flex-col gap-1">
+                      {listing.price === 0 && (
+                        <Badge className="bg-green-500 text-white backdrop-blur-sm text-xs font-medium">
+                          Gratuit
+                        </Badge>
+                      )}
+                      {listing.condition && (
+                        <Badge className="bg-accent/90 text-accent-foreground backdrop-blur-sm text-xs">
+                          {listing.condition === 'new' ? 'Neuf' : listing.condition === 'like-new' ? 'Comme neuf' : 'Usagé'}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                   <div className="p-3">
                     <p className="font-semibold text-lg text-primary mb-1">
