@@ -182,30 +182,50 @@ const RecentListings = () => {
     getCoordinates();
   }, [userProfile?.city, userProfile?.country, guestLocation.city, guestLocation.country]);
 
-  // Calculate distances for listings using stored GPS coordinates
+  // Calculate distances for listings using stored GPS coordinates or geocoding
   useEffect(() => {
     if (!userCoordinates || !listings) return;
 
-    const distances: { [key: string]: number } = {};
-    
-    for (const listing of listings) {
-      // Use stored GPS coordinates if available
-      if (listing.latitude && listing.longitude) {
-        try {
-          const distance = calculateDistance(
-            userCoordinates.lat,
-            userCoordinates.lng,
-            Number(listing.latitude),
-            Number(listing.longitude)
-          );
-          distances[listing.id] = distance;
-        } catch (error) {
-          console.error(`Error calculating distance for listing ${listing.id}:`, error);
+    const calculateDistances = async () => {
+      const distances: { [key: string]: number } = {};
+      
+      for (const listing of listings) {
+        // Use stored GPS coordinates if available
+        if (listing.latitude && listing.longitude) {
+          try {
+            const distance = calculateDistance(
+              userCoordinates.lat,
+              userCoordinates.lng,
+              Number(listing.latitude),
+              Number(listing.longitude)
+            );
+            distances[listing.id] = distance;
+          } catch (error) {
+            console.error(`Error calculating distance for listing ${listing.id}:`, error);
+          }
+        } else if (listing.location) {
+          // Fallback: geocode the location string (with rate limiting)
+          try {
+            const listingCoords = await geocodeLocation(listing.location);
+            if (listingCoords) {
+              const distance = calculateDistance(
+                userCoordinates.lat,
+                userCoordinates.lng,
+                listingCoords.lat,
+                listingCoords.lng
+              );
+              distances[listing.id] = distance;
+            }
+          } catch (error) {
+            console.error(`Error geocoding listing ${listing.id}:`, error);
+          }
         }
       }
-    }
-    
-    setListingDistances(distances);
+      
+      setListingDistances(distances);
+    };
+
+    calculateDistances();
   }, [userCoordinates, listings]);
 
   // RÈGLE : Trier les annonces par proximité pour les utilisateurs avec localisation (authentifiés ou invités)
