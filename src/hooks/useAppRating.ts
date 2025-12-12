@@ -1,6 +1,13 @@
 import { Capacitor } from '@capacitor/core';
+import { useState, useEffect } from 'react';
+
+const RATED_KEY = 'ayoka_app_rated';
 
 export const useAppRating = () => {
+  const [hasRated, setHasRated] = useState(() => {
+    return localStorage.getItem(RATED_KEY) === 'true';
+  });
+
   const openAppStore = () => {
     const platform = Capacitor.getPlatform();
     
@@ -11,26 +18,26 @@ export const useAppRating = () => {
     let url: string;
     
     if (platform === 'android') {
-      // Sur Android, essayer d'ouvrir dans Play Store app
       url = playStoreUrl;
     } else if (platform === 'ios') {
-      // Sur iOS, ouvrir dans App Store
       url = appStoreUrl;
     } else {
-      // Sur web, détecter le système d'exploitation
       const userAgent = navigator.userAgent.toLowerCase();
       if (/android/i.test(userAgent)) {
         url = playStoreUrl;
       } else if (/iphone|ipad|ipod/i.test(userAgent)) {
         url = appStoreUrl;
       } else {
-        // Par défaut, ouvrir Play Store sur desktop
         url = playStoreUrl;
       }
     }
     
+    // Marquer comme noté
+    localStorage.setItem(RATED_KEY, 'true');
+    setHasRated(true);
+    
     window.open(url, '_blank');
   };
 
-  return { openAppStore };
+  return { openAppStore, hasRated };
 };
