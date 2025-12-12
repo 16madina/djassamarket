@@ -18,27 +18,20 @@ const Header = ({
   } = useDarkMode();
   const [userLocation, setUserLocation] = useState<string | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
-  useEffect(() => {
-    // Check cache first - if found, stop loading immediately
-    const cached = sessionStorage.getItem('user_neighborhood');
-    if (cached) {
-      setUserLocation(cached);
-      setIsLoadingLocation(false);
-      return;
-    }
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  const requestLocation = () => {
+    setIsLoadingLocation(true);
+    setLocationError(null);
     
-    // No cache - try to get location once
     if (!('geolocation' in navigator)) {
+      setLocationError("Non supporté");
       setIsLoadingLocation(false);
       return;
     }
-    
-    let isMounted = true;
     
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        if (!isMounted) return;
-        
         try {
           const { latitude, longitude } = position.coords;
           const response = await fetch(
@@ -46,31 +39,49 @@ const Header = ({
             { headers: { 'User-Agent': 'AyokaMarket/1.0' } }
           );
           
-          if (!isMounted) return;
-          
           const data = await response.json();
           const neighborhood = data.address?.neighbourhood || data.address?.suburb || 
             data.address?.quarter || data.address?.hamlet || data.address?.village || 
             data.address?.town || data.address?.city_district || data.address?.city || null;
           
-          if (neighborhood && isMounted) {
+          if (neighborhood) {
             setUserLocation(neighborhood);
             sessionStorage.setItem('user_neighborhood', neighborhood);
+          } else {
+            setLocationError("Position introuvable");
           }
         } catch (error) {
           console.log('Geocoding error:', error);
+          setLocationError("Erreur réseau");
         } finally {
-          if (isMounted) setIsLoadingLocation(false);
+          setIsLoadingLocation(false);
         }
       },
-      () => {
-        // Silent fail on permission denied
-        if (isMounted) setIsLoadingLocation(false);
+      (error) => {
+        console.log('Geolocation error:', error.code);
+        if (error.code === error.PERMISSION_DENIED) {
+          setLocationError("Activez la localisation");
+        } else if (error.code === error.TIMEOUT) {
+          setLocationError("Délai dépassé");
+        } else {
+          setLocationError("Position indisponible");
+        }
+        setIsLoadingLocation(false);
       },
-      { enableHighAccuracy: false, timeout: 5000, maximumAge: 600000 }
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 }
     );
+  };
+
+  useEffect(() => {
+    // Check cache first
+    const cached = sessionStorage.getItem('user_neighborhood');
+    if (cached) {
+      setUserLocation(cached);
+      setIsLoadingLocation(false);
+      return;
+    }
     
-    return () => { isMounted = false; };
+    requestLocation();
   }, []);
   return <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pt-safe">
       <div className="container flex flex-col sm:flex-row sm:h-16 items-center justify-between px-4 py-2 sm:py-0 gap-1 sm:gap-0">
@@ -88,7 +99,17 @@ const Header = ({
             {isLoadingLocation && (
               <div className="flex sm:hidden items-center gap-1 text-[10px] text-muted-foreground -mt-1">
                 <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                <span>Localisation...</span>
               </div>
+            )}
+            {!userLocation && !isLoadingLocation && locationError && (
+              <button 
+                onClick={requestLocation}
+                className="flex sm:hidden items-center gap-1 text-[10px] text-muted-foreground -mt-1 hover:text-foreground transition-colors"
+              >
+                <MapPin className="h-2.5 w-2.5" />
+                <span>{locationError}</span>
+              </button>
             )}
           </div>
           
@@ -113,11 +134,27 @@ const Header = ({
 
         {/* Desktop layout */}
         <div className="hidden sm:flex items-center gap-3">
-          
-          {(userLocation || isLoadingLocation) && <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              
-              {isLoadingLocation ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <span className="truncate max-w-[150px] mx-[9px] my-0 px-0">{userLocation}</span>}
-            </div>}
+          {userLocation && !isLoadingLocation && (
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <MapPin className="h-3.5 w-3.5" />
+              <span className="truncate max-w-[150px]">{userLocation}</span>
+            </div>
+          )}
+          {isLoadingLocation && (
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <span>Localisation...</span>
+            </div>
+          )}
+          {!userLocation && !isLoadingLocation && locationError && (
+            <button 
+              onClick={requestLocation}
+              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <MapPin className="h-3.5 w-3.5" />
+              <span>{locationError}</span>
+            </button>
+          )}
         </div>
 
         <nav className="hidden sm:flex items-center gap-3">
