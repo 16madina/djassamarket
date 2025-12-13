@@ -6,6 +6,48 @@ import { toast } from '@/hooks/use-toast';
 // Dynamically import FirebaseMessaging only on native platforms
 let FirebaseMessaging: any = null;
 
+// Store pending navigation from notification tap (before app is fully loaded)
+let pendingNotificationRoute: string | null = null;
+
+export const getPendingNotificationRoute = () => {
+  const route = pendingNotificationRoute;
+  pendingNotificationRoute = null; // Clear after reading
+  return route;
+};
+
+const getRouteFromNotificationData = (data: Record<string, string> | undefined): string | null => {
+  if (!data) return null;
+  
+  if (data.route) {
+    return data.route;
+  }
+  
+  switch (data.type) {
+    case 'message':
+      return data.conversationId 
+        ? `/messages?conversation=${data.conversationId}` 
+        : '/messages';
+    case 'offer':
+    case 'listing':
+    case 'like':
+    case 'new_listing':
+      if (data.listingId || data.listing_id) {
+        return `/listing/${data.listingId || data.listing_id}`;
+      }
+      break;
+    case 'payment':
+      return '/transactions';
+    case 'follower':
+      return data.userId 
+        ? `/seller/${data.userId}` 
+        : '/profile';
+    case 'review':
+      return '/profile';
+  }
+  
+  return null;
+};
+
 export const usePushNotifications = () => {
   const [pushToken, setPushToken] = useState<string | null>(null);
   const [isRegistered, setIsRegistered] = useState(false);
@@ -112,34 +154,24 @@ export const usePushNotifications = () => {
         await FirebaseMessaging.addListener('notificationActionPerformed', (event: { notification: { data?: Record<string, string> } }) => {
           console.log('FCM notification action performed:', event);
           
-          const data = event.notification.data;
-          if (data?.route) {
-            window.location.href = data.route;
-          } else if (data?.type) {
-            switch (data.type) {
-              case 'message':
-                window.location.href = data.conversationId 
-                  ? `/messages?conversation=${data.conversationId}` 
-                  : '/messages';
-                break;
-              case 'offer':
-              case 'listing':
-              case 'like':
-              case 'new_listing':
-                if (data.listingId || data.listing_id) {
-                  window.location.href = `/listing/${data.listingId || data.listing_id}`;
+          const route = getRouteFromNotificationData(event.notification.data);
+          if (route) {
+            console.log('📍 Notification tap - navigating to:', route);
+            // Store the route for later navigation (after app is fully loaded)
+            pendingNotificationRoute = route;
+            
+            // Try to navigate - if React Router is ready, this will work
+            // If not, the route is stored and will be handled by App.tsx
+            try {
+              // Small delay to ensure the app is loaded
+              setTimeout(() => {
+                if (pendingNotificationRoute) {
+                  window.location.href = pendingNotificationRoute;
+                  pendingNotificationRoute = null;
                 }
-                break;
-              case 'payment':
-                window.location.href = '/transactions';
-                break;
-              case 'follower':
-                window.location.href = data.userId 
-                  ? `/seller/${data.userId}` 
-                  : '/profile';
-                break;
-              default:
-                break;
+              }, 500);
+            } catch (e) {
+              console.log('Navigation will be handled after app loads');
             }
           }
         });
