@@ -1,6 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,7 +13,7 @@ const corsHeaders = {
 
 interface PasswordResetRequest {
   email: string;
-  resetUrl: string;
+  redirectUrl: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -19,11 +22,59 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { email, resetUrl }: PasswordResetRequest = await req.json();
+    const { email, redirectUrl }: PasswordResetRequest = await req.json();
     
-    console.log("Sending password reset email to:", email);
-    console.log("Reset URL:", resetUrl);
+    console.log("Processing password reset for:", email);
 
+    // Create Supabase admin client
+    const supabaseAdmin = createClient(
+      SUPABASE_URL!,
+      SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+
+    // Generate password reset link using Supabase Admin API
+    const { data, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'recovery',
+      email: email,
+      options: {
+        redirectTo: redirectUrl,
+      },
+    });
+
+    if (linkError) {
+      console.error("Error generating reset link:", linkError);
+      // Don't reveal if email exists or not for security
+      return new Response(
+        JSON.stringify({ success: true }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    const resetUrl = data.properties?.action_link;
+    
+    if (!resetUrl) {
+      console.error("No action link returned");
+      return new Response(
+        JSON.stringify({ success: true }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    console.log("Generated reset URL for email");
+
+    // Send custom styled email via Resend
     const emailResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -206,10 +257,10 @@ const handler = async (req: Request): Promise<Response> => {
       }),
     });
 
-    const data = await emailResponse.json();
+    const emailData = await emailResponse.json();
 
     if (!emailResponse.ok) {
-      console.error("Error sending email:", data);
+      console.error("Error sending email:", emailData);
       
       if (emailResponse.status === 429) {
         return new Response(
@@ -220,35 +271,30 @@ const handler = async (req: Request): Promise<Response> => {
           }),
           {
             status: 429,
-            headers: {
-              "Content-Type": "application/json",
-              ...corsHeaders,
-            },
+            headers: { "Content-Type": "application/json", ...corsHeaders },
           }
         );
       }
       
-      throw new Error(data.error || "Failed to send email");
+      throw new Error(emailData.error || "Failed to send email");
     }
 
-    console.log("Password reset email sent successfully:", data);
+    console.log("Password reset email sent successfully via Resend");
 
     return new Response(
       JSON.stringify({ success: true }),
       {
         status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          ...corsHeaders,
-        },
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
   } catch (error: any) {
     console.error("Error in send-password-reset function:", error);
+    // Always return success to not reveal if email exists
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ success: true }),
       {
-        status: 500,
+        status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );

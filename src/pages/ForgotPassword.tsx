@@ -46,27 +46,22 @@ const ForgotPassword = () => {
     setIsLoading(true);
     
     try {
-      // Use Supabase built-in password reset which triggers the auth hook
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+      // Use only our Edge Function to send custom styled email via Resend
+      const redirectUrl = `${window.location.origin}/reset-password`;
+      
+      const { error } = await supabase.functions.invoke('send-password-reset', {
+        body: { email, redirectUrl }
       });
       
-      if (error) throw error;
-      
-      // Also send our custom styled email via Edge Function
-      try {
-        const resetUrl = `${window.location.origin}/reset-password`;
-        await supabase.functions.invoke('send-password-reset', {
-          body: { email, resetUrl }
-        });
-      } catch (emailError) {
-        console.log("Custom email failed, but Supabase email was sent:", emailError);
+      if (error) {
+        console.error("Error from edge function:", error);
       }
       
+      // Always show success to not reveal if email exists
       setIsEmailSent(true);
       toast({
         title: "Email envoyé",
-        description: "Vérifiez votre boîte de réception pour réinitialiser votre mot de passe.",
+        description: "Si un compte existe avec cet email, vous recevrez un lien de réinitialisation.",
       });
       
     } catch (error: any) {
