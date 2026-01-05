@@ -6,6 +6,183 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Fonction pour notifier les admins d'une image rejetée
+async function notifyAdmins(supabase: any, imageUrl: string, reason: string | null, uploaderId: string | null) {
+  try {
+    // Récupérer tous les admins avec leurs push tokens
+    const { data: adminRoles, error: rolesError } = await supabase
+      .from("user_roles")
+      .select("user_id")
+      .eq("role", "admin");
+
+    if (rolesError || !adminRoles || adminRoles.length === 0) {
+      console.log("No admins found or error fetching admins:", rolesError);
+      return;
+    }
+
+    const adminIds = adminRoles.map((r: { user_id: string }) => r.user_id);
+
+    // Récupérer les push tokens des admins
+    const { data: adminProfiles, error: profilesError } = await supabase
+      .from("profiles")
+      .select("id, push_token, full_name")
+      .in("id", adminIds)
+      .not("push_token", "is", null);
+
+    if (profilesError || !adminProfiles || adminProfiles.length === 0) {
+      console.log("No admin push tokens found:", profilesError);
+      return;
+    }
+
+    // Récupérer le nom de l'uploader si disponible
+    let uploaderName = "Utilisateur inconnu";
+    if (uploaderId) {
+      const { data: uploaderProfile } = await supabase
+        .from("profiles")
+        .select("full_name, first_name")
+        .eq("id", uploaderId)
+        .single();
+      
+      if (uploaderProfile) {
+        uploaderName = uploaderProfile.full_name || uploaderProfile.first_name || "Utilisateur";
+      }
+    }
+
+    console.log(`Sending moderation alert to ${adminProfiles.length} admin(s)`);
+
+    // Envoyer une notification push à chaque admin
+    for (const admin of adminProfiles) {
+      if (!admin.push_token) continue;
+
+      try {
+        // Récupérer le service account Firebase
+        const firebaseServiceAccount = Deno.env.get("FIREBASE_SERVICE_ACCOUNT");
+        if (!firebaseServiceAccount) {
+          console.error("FIREBASE_SERVICE_ACCOUNT not configured");
+          continue;
+        }
+
+        const serviceAccount = JSON.parse(firebaseServiceAccount);
+
+        // Générer le token d'accès OAuth2 pour Firebase
+        const now = Math.floor(Date.now() / 1000);
+        const header = { alg: "RS256", typ: "JWT" };
+        const payload = {
+          iss: serviceAccount.client_email,
+          scope: "https://www.googleapis.com/auth/firebase.messaging",
+          aud: "https://oauth2.googleapis.com/token",
+          iat: now,
+          exp: now + 3600,
+        };
+
+        const encoder = new TextEncoder();
+        const base64url = (data: Uint8Array) => {
+          return btoa(String.fromCharCode(...data))
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=/g, "");
+        };
+
+        const headerB64 = base64url(encoder.encode(JSON.stringify(header)));
+        const payloadB64 = base64url(encoder.encode(JSON.stringify(payload)));
+        const signatureInput = `${headerB64}.${payloadB64}`;
+
+        // Importer la clé privée
+        const pemContent = serviceAccount.private_key
+          .replace(/-----BEGIN PRIVATE KEY-----/, "")
+          .replace(/-----END PRIVATE KEY-----/, "")
+          .replace(/\n/g, "");
+        const binaryKey = Uint8Array.from(atob(pemContent), (c) => c.charCodeAt(0));
+
+        const cryptoKey = await crypto.subtle.importKey(
+          "pkcs8",
+          binaryKey,
+          { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+          false,
+          ["sign"]
+        );
+
+        const signature = await crypto.subtle.sign(
+          "RSASSA-PKCS1-v1_5",
+          cryptoKey,
+          encoder.encode(signatureInput)
+        );
+
+        const jwt = `${signatureInput}.${base64url(new Uint8Array(signature))}`;
+
+        // Échanger le JWT contre un access token
+        const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,
+        });
+
+        const tokenData = await tokenResponse.json();
+        const accessToken = tokenData.access_token;
+
+        if (!accessToken) {
+          console.error("Failed to get access token for admin notification");
+          continue;
+        }
+
+        // Envoyer la notification FCM
+        const fcmResponse = await fetch(
+          `https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              message: {
+                token: admin.push_token,
+                notification: {
+                  title: "🚨 Image rejetée par modération",
+                  body: `${uploaderName}: ${reason || "Contenu inapproprié détecté"}`,
+                },
+                data: {
+                  type: "moderation_alert",
+                  imageUrl: imageUrl,
+                  uploaderId: uploaderId || "",
+                  reason: reason || "",
+                  route: "/admin",
+                },
+                android: {
+                  priority: "high",
+                  notification: {
+                    color: "#FF0000",
+                    channel_id: "moderation_alerts",
+                  },
+                },
+                apns: {
+                  payload: {
+                    aps: {
+                      sound: "default",
+                      badge: 1,
+                    },
+                  },
+                },
+              },
+            }),
+          }
+        );
+
+        if (fcmResponse.ok) {
+          console.log(`Moderation alert sent to admin ${admin.id}`);
+        } else {
+          const errorText = await fcmResponse.text();
+          console.error(`Failed to send moderation alert to admin ${admin.id}:`, errorText);
+        }
+      } catch (notifyError) {
+        console.error(`Error sending notification to admin ${admin.id}:`, notifyError);
+      }
+    }
+  } catch (error) {
+    console.error("Error in notifyAdmins:", error);
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -153,6 +330,11 @@ Réponds UNIQUEMENT avec un JSON valide:
           reason: reason,
         });
         console.log("Moderation log saved:", isSafe ? "safe" : "unsafe");
+        
+        // Si l'image est rejetée, notifier les admins
+        if (!isSafe) {
+          await notifyAdmins(supabase, imageUrl, reason, userId);
+        }
       } catch (logError) {
         console.error("Failed to save moderation log:", logError);
       }
@@ -178,6 +360,9 @@ Réponds UNIQUEMENT avec un JSON valide:
             is_safe: false,
             reason: "Contenu potentiellement inapproprié détecté",
           });
+          
+          // Notifier les admins
+          await notifyAdmins(supabase, imageUrl, "Contenu potentiellement inapproprié détecté", userId);
         } catch (logError) {
           console.error("Failed to save moderation log:", logError);
         }
