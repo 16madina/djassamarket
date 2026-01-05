@@ -7,10 +7,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
-import { ShieldX, ShieldCheck, Eye, ExternalLink, RefreshCw, ImageOff, MessageSquareOff } from "lucide-react";
+import { ShieldX, ShieldCheck, Eye, ExternalLink, RefreshCw, ImageOff, MessageSquareOff, Settings } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { BannedWordsManagement } from "./BannedWordsManagement";
+import { BannedImageCategoriesManagement } from "./BannedImageCategoriesManagement";
 
 export const ImageModerationDashboard = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -61,10 +62,14 @@ export const ImageModerationDashboard = () => {
 
   return (
     <Tabs defaultValue="images" className="space-y-4">
-      <TabsList className="grid w-full grid-cols-2">
+      <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="images" className="flex items-center gap-2">
           <ImageOff className="h-4 w-4" />
           Images
+        </TabsTrigger>
+        <TabsTrigger value="image-rules" className="flex items-center gap-2">
+          <Settings className="h-4 w-4" />
+          Règles images
         </TabsTrigger>
         <TabsTrigger value="words" className="flex items-center gap-2">
           <MessageSquareOff className="h-4 w-4" />
@@ -256,6 +261,10 @@ export const ImageModerationDashboard = () => {
             )}
           </DialogContent>
         </Dialog>
+      </TabsContent>
+
+      <TabsContent value="image-rules">
+        <BannedImageCategoriesManagement />
       </TabsContent>
 
       <TabsContent value="words">

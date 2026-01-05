@@ -215,28 +215,38 @@ serve(async (req) => {
 
     console.log("Analyzing image for moderation:", imageUrl.substring(0, 100) + "...");
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "system",
-            content: `Tu es un modérateur de contenu pour une marketplace. Analyse l'image et détermine si elle est appropriée pour une annonce de vente.
+    // Récupérer les catégories interdites actives depuis la base de données
+    const { data: bannedCategories, error: categoriesError } = await supabase
+      .from("banned_image_categories")
+      .select("name, description, severity")
+      .eq("active", true);
+
+    if (categoriesError) {
+      console.error("Error fetching banned categories:", categoriesError);
+    }
+
+    // Construire la liste des contenus interdits dynamiquement
+    let bannedContentList = "";
+    if (bannedCategories && bannedCategories.length > 0) {
+      bannedContentList = bannedCategories
+        .map((cat: { name: string; description: string | null; severity: string }) => {
+          const desc = cat.description ? ` (${cat.description})` : "";
+          return `- ${cat.name}${desc} [sévérité: ${cat.severity}]`;
+        })
+        .join("\n");
+    } else {
+      // Fallback par défaut si aucune catégorie n'est définie
+      bannedContentList = `- Nudité ou contenu sexuel
+- Violence graphique
+- Armes à feu et armes blanches
+- Drogues et substances illicites
+- Symboles haineux ou discriminatoires`;
+    }
+
+    const systemPrompt = `Tu es un modérateur de contenu pour une marketplace. Analyse l'image et détermine si elle est appropriée pour une annonce de vente.
 
 CONTENUS INTERDITS (répondre "unsafe"):
-- Nudité ou contenu sexuel/pornographique
-- Violence graphique, sang, gore
-- Armes à feu, couteaux de combat, armes blanches
-- Drogues, substances illicites, accessoires de drogue
-- Symboles haineux, racistes ou discriminatoires
-- Contenu terroriste ou extrémiste
-- Documents d'identité, cartes bancaires
-- Contenu impliquant des mineurs de manière inappropriée
+${bannedContentList}
 
 CONTENUS AUTORISÉS:
 - Produits de consommation courante
@@ -250,7 +260,22 @@ CONTENUS AUTORISÉS:
 - Tout objet légal à vendre
 
 Réponds UNIQUEMENT avec un JSON valide:
-{"safe": true} ou {"safe": false, "reason": "brève explication en français"}`
+{"safe": true} ou {"safe": false, "reason": "brève explication en français"}`;
+
+    console.log("Using moderation prompt with", bannedCategories?.length || 0, "banned categories");
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt
           },
           {
             role: "user",

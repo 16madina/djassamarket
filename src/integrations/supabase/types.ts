@@ -47,6 +47,36 @@ export type Database = {
         }
         Relationships: []
       }
+      banned_image_categories: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          severity: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          severity?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          severity?: string
+        }
+        Relationships: []
+      }
       banned_words: {
         Row: {
           created_at: string | null
