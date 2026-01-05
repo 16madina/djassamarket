@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Upload, Image as ImageIcon } from "lucide-react";
+import { X, Upload, Image as ImageIcon, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -13,8 +13,36 @@ interface ImageUploaderProps {
   maxImages?: number;
 }
 
+// Fonction pour modérer une image via l'edge function
+const moderateImage = async (imageUrl: string): Promise<{ safe: boolean; reason?: string }> => {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/moderate-image`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ imageUrl }),
+      }
+    );
+
+    if (!response.ok) {
+      console.error("Moderation request failed:", response.status);
+      return { safe: true }; // Fail-open
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Moderation error:", error);
+    return { safe: true }; // Fail-open en cas d'erreur
+  }
+};
+
 export const ImageUploader = ({ images, onImagesChange, maxImages = 10 }: ImageUploaderProps) => {
   const [uploading, setUploading] = useState(false);
+  const [moderating, setModerating] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const { toast } = useToast();
   const { pickFromGallery, isLoading: cameraLoading } = useCamera();
@@ -110,6 +138,7 @@ export const ImageUploader = ({ images, onImagesChange, maxImages = 10 }: ImageU
       }
 
       const newImages: string[] = [];
+      const rejectedImages: string[] = [];
 
       for (const chunk of chunks) {
         const uploadPromises = chunk.map(async (file, idx) => {
@@ -130,7 +159,7 @@ export const ImageUploader = ({ images, onImagesChange, maxImages = 10 }: ImageU
               .from("listings")
               .getPublicUrl(fileName);
 
-            return publicUrl;
+            return { publicUrl, fileName, originalName: file.name };
           } catch (error) {
             errorTracker.logError('upload', `Failed to upload ${file.name}`, error as Error);
             throw error;
@@ -138,15 +167,47 @@ export const ImageUploader = ({ images, onImagesChange, maxImages = 10 }: ImageU
         });
 
         const chunkResults = await Promise.all(uploadPromises);
-        newImages.push(...chunkResults);
+        
+        // Modération des images uploadées
+        setModerating(true);
+        for (const result of chunkResults) {
+          const moderation = await moderateImage(result.publicUrl);
+          
+          if (moderation.safe) {
+            newImages.push(result.publicUrl);
+          } else {
+            // Supprimer l'image du storage si elle n'est pas appropriée
+            await supabase.storage.from("listings").remove([result.fileName]);
+            rejectedImages.push(result.originalName);
+            
+            console.warn("Image rejected by moderation:", result.originalName, moderation.reason);
+          }
+        }
+        setModerating(false);
       }
 
-      onImagesChange([...images, ...newImages]);
+      // Afficher les résultats
+      if (rejectedImages.length > 0) {
+        toast({
+          title: "Image(s) refusée(s)",
+          description: `${rejectedImages.length} image(s) contiennent du contenu inapproprié et ont été retirées.`,
+          variant: "destructive",
+        });
+      }
 
-      toast({
-        title: "Images téléchargées",
-        description: `${newImages.length} image(s) ajoutée(s) avec succès`,
-      });
+      if (newImages.length > 0) {
+        onImagesChange([...images, ...newImages]);
+        toast({
+          title: "Images téléchargées",
+          description: `${newImages.length} image(s) ajoutée(s) avec succès`,
+        });
+      } else if (rejectedImages.length === 0) {
+        toast({
+          title: "Aucune image ajoutée",
+          description: "Veuillez réessayer",
+          variant: "destructive",
+        });
+      }
 
       performanceMonitor.endMeasure('image-upload');
     } catch (error: any) {
@@ -240,12 +301,18 @@ export const ImageUploader = ({ images, onImagesChange, maxImages = 10 }: ImageU
             multiple
             className="hidden"
             onChange={handleFileSelect}
-            disabled={uploading || cameraLoading}
+            disabled={uploading || cameraLoading || moderating}
           />
           {uploading || cameraLoading ? (
             <div className="text-center">
               <Upload className="h-12 w-12 text-muted-foreground mb-3 mx-auto animate-pulse" />
               <span className="text-base text-muted-foreground font-medium">Envoi en cours...</span>
+            </div>
+          ) : moderating ? (
+            <div className="text-center">
+              <ShieldAlert className="h-12 w-12 text-primary mb-3 mx-auto animate-pulse" />
+              <span className="text-base text-muted-foreground font-medium">Vérification en cours...</span>
+              <span className="text-xs text-muted-foreground block mt-1">Analyse automatique du contenu</span>
             </div>
           ) : (
             <div className="text-center">
@@ -297,12 +364,17 @@ export const ImageUploader = ({ images, onImagesChange, maxImages = 10 }: ImageU
                   multiple
                   className="hidden"
                   onChange={handleFileSelect}
-                  disabled={uploading || cameraLoading}
+                  disabled={uploading || cameraLoading || moderating}
                 />
                 {uploading || cameraLoading ? (
                   <div className="text-center">
                     <Upload className="h-6 w-6 text-muted-foreground mb-1 mx-auto animate-pulse" />
                     <span className="text-xs text-muted-foreground">Envoi...</span>
+                  </div>
+                ) : moderating ? (
+                  <div className="text-center">
+                    <ShieldAlert className="h-6 w-6 text-primary mb-1 mx-auto animate-pulse" />
+                    <span className="text-xs text-muted-foreground">Vérif...</span>
                   </div>
                 ) : (
                   <div className="text-center">
