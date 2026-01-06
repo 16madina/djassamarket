@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useEffect } from "react";
 
 const BottomNav = () => {
@@ -14,6 +15,20 @@ const BottomNav = () => {
       const { data: { user } } = await supabase.auth.getUser();
       return user;
     },
+  });
+
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("avatar_url, first_name, last_name")
+        .eq("id", user.id)
+        .single();
+      return data;
+    },
+    enabled: !!user?.id,
   });
 
   const { unreadCount, refetchUnreadCount } = useUnreadMessages(user?.id);
@@ -37,7 +52,7 @@ const BottomNav = () => {
     { to: "/categories", icon: Grid3x3, label: "Catégories" },
     { to: "/publish", icon: PlusCircle, label: "Publier" },
     { to: "/messages", icon: MessageCircle, label: "Messages", badge: unreadCount },
-    { to: "/profile", icon: User, label: "Profil" },
+    { to: "/profile", icon: User, label: "Profil", isProfile: true },
   ];
 
   return (
@@ -47,7 +62,7 @@ const BottomNav = () => {
       
       <div className="relative max-w-screen-xl mx-auto px-2">
         <div className="flex items-center justify-around gap-0.5 py-1 pb-safe">
-          {navItems.map(({ to, icon: Icon, label, badge }) => (
+          {navItems.map(({ to, icon: Icon, label, badge, isProfile }) => (
             <NavLink
               key={to}
               to={to}
@@ -66,13 +81,25 @@ const BottomNav = () => {
                   )}
                 >
                   <div className="relative">
-                    <Icon
-                      className={cn(
+                    {isProfile && profile?.avatar_url ? (
+                      <Avatar className={cn(
                         "h-6 w-6 transition-all duration-200",
-                        isActive && "drop-shadow-sm animate-scale-in"
-                      )}
-                      strokeWidth={isActive ? 2.5 : 2}
-                    />
+                        isActive && "ring-2 ring-primary-foreground animate-scale-in"
+                      )}>
+                        <AvatarImage src={profile.avatar_url} alt="Profil" />
+                        <AvatarFallback className="text-[10px] bg-muted">
+                          {profile.first_name?.[0] || profile.last_name?.[0] || <User className="h-3 w-3" />}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <Icon
+                        className={cn(
+                          "h-6 w-6 transition-all duration-200",
+                          isActive && "drop-shadow-sm animate-scale-in"
+                        )}
+                        strokeWidth={isActive ? 2.5 : 2}
+                      />
+                    )}
                     {badge !== undefined && badge > 0 && (
                       <Badge 
                         key={badge}
