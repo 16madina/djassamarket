@@ -40,6 +40,7 @@ import CommunityGuidelines from "./pages/settings/CommunityGuidelines";
 import ChildSafety from "./pages/settings/ChildSafety";
 import Transactions from "./pages/Transactions";
 import SellerBadgesInfo from "./pages/settings/SellerBadges";
+import Referral from "./pages/Referral";
 
 import TestCamera from "./pages/TestCamera";
 import AdminPerformance from "./pages/AdminPerformance";
@@ -199,6 +200,7 @@ const App = () => {
           <Route path="/admin/performance" element={<AdminPerformance />} />
           <Route path="/admin/notifications" element={<AdminNotifications />} />
           <Route path="/map" element={<MapView />} />
+          <Route path="/referral" element={<Referral />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
             </Routes>

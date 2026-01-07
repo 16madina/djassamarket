@@ -137,6 +137,47 @@ export type Database = {
           },
         ]
       }
+      boost_cards: {
+        Row: {
+          created_at: string
+          duration_days: number
+          earned_at: string
+          expires_at: string | null
+          id: string
+          status: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_days?: number
+          earned_at?: string
+          expires_at?: string | null
+          id?: string
+          status?: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_days?: number
+          earned_at?: string
+          expires_at?: string | null
+          id?: string
+          status?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boost_cards_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -322,6 +363,61 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      listing_boosts: {
+        Row: {
+          boost_card_id: string
+          created_at: string
+          ends_at: string
+          id: string
+          is_active: boolean
+          listing_id: string
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          boost_card_id: string
+          created_at?: string
+          ends_at: string
+          id?: string
+          is_active?: boolean
+          listing_id: string
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          boost_card_id?: string
+          created_at?: string
+          ends_at?: string
+          id?: string
+          is_active?: boolean
+          listing_id?: string
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_boosts_boost_card_id_fkey"
+            columns: ["boost_card_id"]
+            isOneToOne: false
+            referencedRelation: "boost_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_boosts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_boosts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       listings: {
         Row: {
@@ -643,6 +739,9 @@ export type Database = {
           push_token: string | null
           rating_average: number | null
           rating_count: number | null
+          referral_code: string | null
+          referral_count: number | null
+          referred_by: string | null
           response_rate: number | null
           star_seller: boolean | null
           total_sales: number | null
@@ -677,6 +776,9 @@ export type Database = {
           push_token?: string | null
           rating_average?: number | null
           rating_count?: number | null
+          referral_code?: string | null
+          referral_count?: number | null
+          referred_by?: string | null
           response_rate?: number | null
           star_seller?: boolean | null
           total_sales?: number | null
@@ -711,6 +813,9 @@ export type Database = {
           push_token?: string | null
           rating_average?: number | null
           rating_count?: number | null
+          referral_code?: string | null
+          referral_count?: number | null
+          referred_by?: string | null
           response_rate?: number | null
           star_seller?: boolean | null
           total_sales?: number | null
@@ -719,7 +824,15 @@ export type Database = {
           verified_at?: string | null
           verified_seller?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quick_replies: {
         Row: {
@@ -747,6 +860,48 @@ export type Database = {
           {
             foreignKeyName: "quick_replies_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referred_id: string
+          referrer_id: string
+          status: string
+          validated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referred_id: string
+          referrer_id: string
+          status?: string
+          validated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referred_id?: string
+          referrer_id?: string
+          status?: string
+          validated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referred_id_fkey"
+            columns: ["referred_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -972,6 +1127,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      deactivate_expired_boosts: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
