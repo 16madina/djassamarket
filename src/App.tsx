@@ -152,14 +152,12 @@ const App = () => {
         )}
         
         {/* Main Content Layer */}
-        <div 
-          className={`transition-all duration-700 ease-out ${
-            showContent 
-              ? "opacity-100 scale-100 translate-y-0" 
-              : "opacity-0 scale-95 translate-y-4"
+        <div
+          className={`transition-opacity duration-700 ease-out ${
+            showContent ? "opacity-100" : "opacity-0"
           }`}
           style={{
-            visibility: showContent ? 'visible' : 'hidden',
+            visibility: showContent ? "visible" : "hidden",
           }}
         >
           <BrowserRouter>
