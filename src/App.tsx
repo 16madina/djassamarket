@@ -85,14 +85,31 @@ const NotificationNavigationHandler = () => {
 
 const App = () => {
   const { isReturningUser, markFullSplashSeen } = useSplashPreference();
+
+  const safeSessionGet = (key: string) => {
+    try {
+      return sessionStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  };
+
+  const safeSessionSet = (key: string, value: string) => {
+    try {
+      sessionStorage.setItem(key, value);
+    } catch {
+      // ignore
+    }
+  };
+
   const [showSplash, setShowSplash] = useState(() => {
-    const hasSeenSplash = sessionStorage.getItem('hasSeenSplash');
+    const hasSeenSplash = safeSessionGet("hasSeenSplash");
     return !hasSeenSplash;
   });
   const [isTransitioning, setIsTransitioning] = useState(false);
   // Show content immediately if splash is already done
   const [showContent, setShowContent] = useState(() => {
-    const hasSeenSplash = sessionStorage.getItem('hasSeenSplash');
+    const hasSeenSplash = safeSessionGet("hasSeenSplash");
     return !!hasSeenSplash;
   });
 
@@ -103,20 +120,25 @@ const App = () => {
   const { showPrompt, setShowPrompt, markAsRated, dismissPrompt, dismissPermanently } = useAppRatingPrompt();
 
   const handleSplashFinish = () => {
-    // Mark as seen in localStorage only if it was the full version
-    if (!isReturningUser) {
-      markFullSplashSeen();
-    }
-    sessionStorage.setItem('hasSeenSplash', 'true');
-    
-    // Start transition animation
+    // Start transition animation first (never block UI on storage errors)
     setIsTransitioning(true);
-    
+
     // Show content with a slight delay for crossfade effect
     setTimeout(() => {
       setShowContent(true);
     }, 100);
-    
+
+    // Persist "seen" markers (can fail on some browsers/modes)
+    try {
+      // Mark as seen in localStorage only if it was the full version
+      if (!isReturningUser) {
+        markFullSplashSeen();
+      }
+      safeSessionSet("hasSeenSplash", "true");
+    } catch {
+      // ignore
+    }
+
     // Hide splash after transition
     setTimeout(() => {
       setShowSplash(false);
