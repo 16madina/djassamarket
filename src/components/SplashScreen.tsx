@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import ayokaSplashLogo from "@/assets/ayoka-logo.png";
 import { useHaptics } from "@/hooks/useHaptics";
 import { useSplashSound } from "@/hooks/useSplashSound";
@@ -13,14 +13,26 @@ const SplashScreen = ({ onFinish, isShortVersion = false }: SplashScreenProps) =
   const [animationPhase, setAnimationPhase] = useState(0);
   const haptics = useHaptics();
   const { playStartupSound } = useSplashSound();
+  const hasFinished = useRef(false);
 
   const duration = isShortVersion ? 500 : 3000;
   const fadeOutDuration = isShortVersion ? 300 : 800;
 
+  // Safe finish function to ensure it only runs once
+  const safeFinish = () => {
+    if (hasFinished.current) return;
+    hasFinished.current = true;
+    onFinish();
+  };
+
   useEffect(() => {
     if (!isShortVersion) {
-      playStartupSound();
-      haptics.medium();
+      try {
+        playStartupSound();
+        haptics.medium();
+      } catch (e) {
+        console.log("Splash effects error:", e);
+      }
       
       // Animation phases for staggered reveal
       const phase1 = setTimeout(() => setAnimationPhase(1), 200);
@@ -33,7 +45,11 @@ const SplashScreen = ({ onFinish, isShortVersion = false }: SplashScreenProps) =
         clearTimeout(phase3);
       };
     } else {
-      haptics.light();
+      try {
+        haptics.light();
+      } catch (e) {
+        console.log("Haptics not available");
+      }
     }
   }, [isShortVersion, haptics, playStartupSound]);
 
@@ -41,15 +57,28 @@ const SplashScreen = ({ onFinish, isShortVersion = false }: SplashScreenProps) =
     const timer = setTimeout(() => {
       setFadeOut(true);
       if (!isShortVersion) {
-        haptics.success();
+        try {
+          haptics.success();
+        } catch (e) {
+          console.log("Haptics not available");
+        }
       }
       setTimeout(() => {
-        onFinish();
+        safeFinish();
       }, fadeOutDuration);
     }, duration);
 
-    return () => clearTimeout(timer);
-  }, [onFinish, haptics, isShortVersion, duration, fadeOutDuration]);
+    // Fallback: ensure splash finishes after max time
+    const fallbackTimer = setTimeout(() => {
+      console.log("Splash fallback triggered");
+      safeFinish();
+    }, duration + fadeOutDuration + 1000);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(fallbackTimer);
+    };
+  }, [haptics, isShortVersion, duration, fadeOutDuration]);
 
   // Short version: elegant minimal splash
   if (isShortVersion) {
