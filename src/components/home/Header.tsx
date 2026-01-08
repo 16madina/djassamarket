@@ -25,21 +25,41 @@ const Header = ({
     setLocationError(null);
     
     if (!('geolocation' in navigator)) {
+      console.log('🔴 Geolocation API not available');
       setLocationError("Non supporté");
       setIsLoadingLocation(false);
       return;
     }
     
+    console.log('📍 Requesting geolocation...');
+    
     navigator.geolocation.getCurrentPosition(
       async (position) => {
+        console.log('📍 Got position:', position.coords.latitude, position.coords.longitude);
         try {
           const { latitude, longitude } = position.coords;
+          
+          // Use AbortController for timeout
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000);
+          
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1&zoom=16`,
-            { headers: { 'User-Agent': 'AyokaMarket/1.0' } }
+            { 
+              headers: { 'User-Agent': 'AyokaMarket/1.0' },
+              signal: controller.signal
+            }
           );
           
+          clearTimeout(timeoutId);
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          
           const data = await response.json();
+          console.log('📍 Geocode result:', data.address);
+          
           const neighborhood = data.address?.neighbourhood || data.address?.suburb || 
             data.address?.quarter || data.address?.hamlet || data.address?.village || 
             data.address?.town || data.address?.city_district || data.address?.city || null;
@@ -48,27 +68,44 @@ const Header = ({
             setUserLocation(neighborhood);
             sessionStorage.setItem('user_neighborhood', neighborhood);
           } else {
-            setLocationError("Position introuvable");
+            // Fallback to city or country
+            const fallback = data.address?.city || data.address?.state || data.address?.country;
+            if (fallback) {
+              setUserLocation(fallback);
+              sessionStorage.setItem('user_neighborhood', fallback);
+            } else {
+              setLocationError("Zone non identifiée");
+            }
           }
-        } catch (error) {
-          console.log('Geocoding error:', error);
-          setLocationError("Erreur réseau");
+        } catch (error: any) {
+          console.log('🔴 Geocoding error:', error.name, error.message);
+          if (error.name === 'AbortError') {
+            setLocationError("Délai dépassé");
+          } else {
+            setLocationError("Erreur réseau");
+          }
         } finally {
           setIsLoadingLocation(false);
         }
       },
       (error) => {
-        console.log('Geolocation error:', error.code);
+        console.log('🔴 Geolocation error:', error.code, error.message);
         if (error.code === error.PERMISSION_DENIED) {
           setLocationError("Activez la localisation");
         } else if (error.code === error.TIMEOUT) {
           setLocationError("Délai dépassé");
-        } else {
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
           setLocationError("Position indisponible");
+        } else {
+          setLocationError("Erreur localisation");
         }
         setIsLoadingLocation(false);
       },
-      { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 }
+      { 
+        enableHighAccuracy: false, 
+        timeout: 15000, // 15 seconds for iOS
+        maximumAge: 600000 
+      }
     );
   };
 
