@@ -3,7 +3,7 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "app.lovable.fdde6a57c0ea45b0bd6d4e42d3d22471",
+      "package_name": "com.ayoka.market",
       "sha256_cert_fingerprints": [
         "D4:6B:41:1E:99:1E:0A:23:DB:39:87:3D:3C:95:AC:44:D4:FD:61:66:6F:79:37:DE:38:AE:18:A9:13:7D:31:F7"
       ]
