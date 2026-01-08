@@ -17,10 +17,13 @@ const Header = ({
     toggleDarkMode
   } = useDarkMode();
   const [userLocation, setUserLocation] = useState<string | null>(null);
-  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [hasAttempted, setHasAttempted] = useState(false);
 
   const requestLocation = () => {
+    if (hasAttempted && !locationError) return; // Prevent re-fetching if already attempted successfully
+    
     setIsLoadingLocation(true);
     setLocationError(null);
     
@@ -28,6 +31,7 @@ const Header = ({
       console.log('🔴 Geolocation API not available');
       setLocationError("Non supporté");
       setIsLoadingLocation(false);
+      setHasAttempted(true);
       return;
     }
     
@@ -86,6 +90,7 @@ const Header = ({
           }
         } finally {
           setIsLoadingLocation(false);
+          setHasAttempted(true);
         }
       },
       (error) => {
@@ -100,10 +105,11 @@ const Header = ({
           setLocationError("Erreur localisation");
         }
         setIsLoadingLocation(false);
+        setHasAttempted(true);
       },
       { 
         enableHighAccuracy: false, 
-        timeout: 15000, // 15 seconds for iOS
+        timeout: 10000, // 10 seconds for iOS
         maximumAge: 600000 
       }
     );
@@ -114,18 +120,19 @@ const Header = ({
     const cached = sessionStorage.getItem('user_neighborhood');
     if (cached) {
       setUserLocation(cached);
-      setIsLoadingLocation(false);
+      setHasAttempted(true);
       return;
     }
     
     requestLocation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pt-safe">
-      <div className="container flex flex-col sm:flex-row sm:h-16 items-center justify-between px-4 py-2 sm:py-0 gap-1 sm:gap-0">
+      <div className="container flex h-14 sm:h-16 items-center justify-between px-4">
         {/* Top row: Logo + Actions */}
         <div className="flex items-center justify-between w-full sm:w-auto">
-          <div className="flex flex-col">
-            <img src={ayokaLogo} alt="AYOKA MARKET" className="h-10 sm:h-14 w-auto cursor-pointer transition-all duration-300 hover:scale-105 object-contain dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" onClick={() => navigate("/")} />
+          <div className="flex flex-col justify-center">
+            <img src={ayokaLogo} alt="AYOKA MARKET" className="h-8 sm:h-14 w-auto cursor-pointer transition-all duration-300 hover:scale-105 object-contain dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" onClick={() => navigate("/")} />
             {/* Location directly below logo on mobile */}
             {userLocation && !isLoadingLocation && (
               <div className="flex sm:hidden items-center gap-1 text-[10px] text-muted-foreground -mt-1">
