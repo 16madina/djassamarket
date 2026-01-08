@@ -99,7 +99,6 @@ serve(async (req) => {
     for (const [key, value] of Object.entries(data)) {
       stringifiedData[key] = String(value);
     }
-    stringifiedData.click_action = 'OPEN_APP';
 
     const message = {
       message: {
@@ -118,7 +117,6 @@ serve(async (req) => {
             notification_priority: 'PRIORITY_HIGH',
             visibility: 'PUBLIC',
             channel_id: 'ayoka_notifications',
-            click_action: 'FCM_PLUGIN_ACTIVITY',
           },
         },
         apns: {
