@@ -20,11 +20,12 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       external: [
-        '@capacitor-firebase/messaging'
+        '@capacitor-firebase/messaging',
+        '@capacitor/app'
       ]
     }
   },
   optimizeDeps: {
-    exclude: ['@capacitor-firebase/messaging']
+    exclude: ['@capacitor-firebase/messaging', '@capacitor/app']
   }
 }));
