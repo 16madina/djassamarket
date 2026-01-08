@@ -128,11 +128,11 @@ const Header = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pt-safe">
-      <div className="container flex h-14 sm:h-16 items-center justify-between px-4">
+      <div className="container flex h-12 sm:h-16 items-center justify-between px-4">
         {/* Top row: Logo + Actions */}
         <div className="flex items-center justify-between w-full sm:w-auto">
           <div className="flex flex-col justify-center">
-            <img src={ayokaLogo} alt="AYOKA MARKET" className="h-8 sm:h-14 w-auto cursor-pointer transition-all duration-300 hover:scale-105 object-contain dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" onClick={() => navigate("/")} />
+            <img src={ayokaLogo} alt="AYOKA MARKET" className="h-7 sm:h-12 w-auto cursor-pointer transition-all duration-300 hover:scale-105 object-contain dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" onClick={() => navigate("/")} />
             {/* Location directly below logo on mobile */}
             {userLocation && !isLoadingLocation && (
               <div className="flex sm:hidden items-center gap-1 text-[10px] text-muted-foreground -mt-1">
