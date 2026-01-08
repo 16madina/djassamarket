@@ -48,26 +48,54 @@ const ReferralPage = () => {
   }, [navigate]);
 
   const handleShare = async () => {
-    if (!referralCode) return;
+    if (!referralCode) {
+      toast({
+        title: "Code non disponible",
+        description: "Veuillez patienter pendant le chargement",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    const shareText = `Rejoins AYOKA MARKET avec mon code parrain ${referralCode} et découvre des milliers d'annonces près de chez toi ! 🛍️✨`;
+    const shareText = `🎁 Rejoins AYOKA MARKET avec mon code parrain ${referralCode} et découvre des milliers d'annonces près de chez toi ! 🛍️✨`;
     const shareUrl = `https://ayokamarket.com?ref=${referralCode}`;
+    const fullMessage = `${shareText}\n\n👉 ${shareUrl}`;
     
-    if (navigator.share) {
+    // Check if Web Share API is available and can share
+    if (navigator.share && navigator.canShare) {
       try {
-        await navigator.share({
+        const shareData = {
           title: "AYOKA MARKET - Parrainage",
           text: shareText,
           url: shareUrl,
-        });
-      } catch (error) {
-        // User cancelled
+        };
+        
+        // Check if this data can be shared
+        if (navigator.canShare(shareData)) {
+          await navigator.share(shareData);
+          return;
+        }
+      } catch (error: any) {
+        // If user cancelled, don't show error
+        if (error.name === 'AbortError') {
+          return;
+        }
+        console.log('Share failed, falling back to clipboard:', error);
       }
-    } else {
-      await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+    }
+    
+    // Fallback: copy to clipboard
+    try {
+      await navigator.clipboard.writeText(fullMessage);
       toast({
-        title: "Lien copié !",
-        description: "Partagez-le avec vos amis",
+        title: "✅ Lien copié !",
+        description: "Collez-le dans WhatsApp, Facebook ou SMS pour le partager",
+      });
+    } catch (clipboardError) {
+      // Ultimate fallback: prompt user to copy manually
+      toast({
+        title: "Code de parrainage",
+        description: `Copiez ce code: ${referralCode}`,
       });
     }
   };
