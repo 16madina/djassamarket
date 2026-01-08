@@ -73,7 +73,7 @@ const Profile = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const { data: profile } = useQuery({
+  const { data: profile, refetch: refetchProfile } = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
       if (!user) return null;
@@ -81,12 +81,33 @@ const Profile = () => {
         .from("profiles")
         .select("*")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
     enabled: !!user,
+    // Keep the UI in sync after returning from email app / deep link.
+    refetchInterval: (query) => (query.state.data?.email_verified ? false : 5000),
+    refetchOnWindowFocus: true,
   });
+
+  useEffect(() => {
+    if (!user) return;
+
+    const handleFocus = () => refetchProfile();
+    const handleVisibilityChange = () => {
+      if (!document.hidden) refetchProfile();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [user, refetchProfile]);
+
 
   const { data: listings, refetch: refetchListings } = useQuery({
     queryKey: ["user-listings", user?.id],
