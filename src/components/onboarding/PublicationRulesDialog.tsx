@@ -91,82 +91,76 @@ export function PublicationRulesDialog({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <ShieldCheck className="h-6 w-6 text-primary" />
+      <DialogContent className="max-w-md max-h-[80vh] flex flex-col p-4 sm:p-6">
+        <DialogHeader className="pb-2">
+          <DialogTitle className="flex items-center gap-2 text-lg">
+            <ShieldCheck className="h-5 w-5 text-primary" />
             Règles de publication
           </DialogTitle>
-          <DialogDescription>
-            Avant de publier votre annonce, veuillez lire et accepter nos règles
-            de publication.
+          <DialogDescription className="text-sm">
+            Veuillez lire et accepter nos règles avant de publier.
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 pr-4 max-h-[50vh]">
-          <div className="space-y-6 py-4">
-            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
-              <h3 className="font-semibold text-destructive flex items-center gap-2 mb-3">
-                <AlertTriangle className="h-5 w-5" />
+        <ScrollArea className="flex-1 -mx-4 px-4 overflow-y-auto" style={{ maxHeight: 'calc(80vh - 220px)' }}>
+          <div className="space-y-4 py-2">
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+              <h3 className="font-semibold text-destructive flex items-center gap-2 mb-2 text-sm">
+                <AlertTriangle className="h-4 w-4" />
                 Contenus strictement interdits
               </h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                La publication des contenus suivants est formellement interdite
-                et entraînera la suppression immédiate de l'annonce et le
-                bannissement du compte.
+              <p className="text-xs text-muted-foreground mb-3">
+                La publication de ces contenus entraînera la suppression de l'annonce et le bannissement du compte.
               </p>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-3">
                 {prohibitedItems.map((category) => (
                   <div
                     key={category.category}
-                    className="bg-background rounded-lg p-3 border"
+                    className="bg-background rounded-lg p-2 border"
                   >
-                    <h4 className="font-medium text-sm flex items-center gap-2 mb-2">
-                      <category.icon className="h-4 w-4 text-muted-foreground" />
+                    <h4 className="font-medium text-xs flex items-center gap-1.5 mb-1.5">
+                      <category.icon className="h-3.5 w-3.5 text-muted-foreground" />
                       {category.category}
                     </h4>
-                    <ul className="space-y-1">
-                      {category.items.map((item) => (
+                    <ul className="space-y-0.5">
+                      {category.items.slice(0, 3).map((item) => (
                         <li
                           key={item}
-                          className="text-xs text-muted-foreground flex items-start gap-2"
+                          className="text-xs text-muted-foreground flex items-start gap-1.5"
                         >
-                          <span className="text-destructive mt-0.5">•</span>
+                          <span className="text-destructive">•</span>
                           {item}
                         </li>
                       ))}
+                      {category.items.length > 3 && (
+                        <li className="text-xs text-muted-foreground italic">
+                          +{category.items.length - 3} autres...
+                        </li>
+                      )}
                     </ul>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-              <h3 className="font-semibold text-primary flex items-center gap-2 mb-3">
-                <ShieldCheck className="h-5 w-5" />
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
+              <h3 className="font-semibold text-primary flex items-center gap-2 mb-2 text-sm">
+                <ShieldCheck className="h-4 w-4" />
                 Bonnes pratiques
               </h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-0.5">✓</span>
-                  Utilisez des photos réelles de vos articles
+              <ul className="space-y-1 text-xs text-muted-foreground">
+                <li className="flex items-start gap-1.5">
+                  <span className="text-primary">✓</span>
+                  Photos réelles de vos articles
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-0.5">✓</span>
-                  Décrivez honnêtement l'état et les défauts éventuels
+                <li className="flex items-start gap-1.5">
+                  <span className="text-primary">✓</span>
+                  Description honnête et prix juste
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-0.5">✓</span>
-                  Indiquez un prix juste et réaliste
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-0.5">✓</span>
-                  Répondez rapidement aux messages des acheteurs
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-0.5">✓</span>
-                  Respectez les autres utilisateurs
+                <li className="flex items-start gap-1.5">
+                  <span className="text-primary">✓</span>
+                  Réponse rapide aux messages
                 </li>
               </ul>
             </div>
