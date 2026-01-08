@@ -96,105 +96,21 @@ const NotificationNavigationHandler = () => {
   return null;
 };
 
-const App = () => {
-  const { isReturningUser, markFullSplashSeen } = useSplashPreference();
-
-  const safeSessionGet = (key: string) => {
-    try {
-      return sessionStorage.getItem(key);
-    } catch {
-      return null;
-    }
-  };
-
-  const safeSessionSet = (key: string, value: string) => {
-    try {
-      sessionStorage.setItem(key, value);
-    } catch {
-      // ignore
-    }
-  };
-
-  // Force splash on page load (always show at least short version)
-  const [showSplash, setShowSplash] = useState(true);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [showContent, setShowContent] = useState(false);
-
-  // Initialiser les notifications push
+// Inner component that uses hooks requiring React context
+const AppContent = () => {
+  // Initialize push notifications inside BrowserRouter
   usePushNotifications();
   
-  // Système de demande d'avis
+  // App rating system
   const { showPrompt, setShowPrompt, markAsRated, dismissPrompt, dismissPermanently } = useAppRatingPrompt();
 
-  const handleSplashFinish = () => {
-    // Start transition animation first (never block UI on storage errors)
-    setIsTransitioning(true);
-
-    // Show content with a slight delay for crossfade effect
-    setTimeout(() => {
-      setShowContent(true);
-    }, 100);
-
-    // Persist "seen" markers (can fail on some browsers/modes)
-    try {
-      // Mark as seen in localStorage only if it was the full version
-      if (!isReturningUser) {
-        markFullSplashSeen();
-      }
-      safeSessionSet("hasSeenSplash", "true");
-    } catch {
-      // ignore
-    }
-
-    // Hide splash after transition
-    setTimeout(() => {
-      setShowSplash(false);
-      setIsTransitioning(false);
-    }, 600);
-  };
-
-  // If splash is done and no transition, show content immediately
-  useEffect(() => {
-    if (!showSplash && !isTransitioning) {
-      setShowContent(true);
-    }
-  }, [showSplash, isTransitioning]);
-
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        
-        {/* Splash Screen Layer */}
-        {showSplash && (
-          <div 
-            className={`fixed inset-0 z-50 transition-all duration-700 ${
-              isTransitioning ? "opacity-0 scale-110" : "opacity-100 scale-100"
-            }`}
-          >
-             <SplashScreen 
-               onFinish={handleSplashFinish} 
-               isShortVersion={false}
-             />
-          </div>
-        )}
-        
-        {/* Main Content Layer */}
-        <div
-          className={`transition-opacity duration-700 ease-out ${
-            showContent ? "opacity-100" : "opacity-0"
-          }`}
-          style={{
-            visibility: showContent ? "visible" : "hidden",
-          }}
-        >
-          <BrowserRouter>
-            <ScrollToTop />
-            <NotificationNavigationHandler />
-            <DeepLinkHandler />
-            <div>
-            <Routes>
+    <>
+      <ScrollToTop />
+      <NotificationNavigationHandler />
+      <DeepLinkHandler />
+      <div>
+        <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -235,18 +151,96 @@ const App = () => {
           <Route path="/referral" element={<Referral />} />
           <Route path="/open" element={<OpenApp />} />
           <Route path="/open/*" element={<OpenApp />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
-            </Routes>
-            <NotificationPermissionPrompt />
-            <AppRatingPrompt
-              open={showPrompt}
-              onOpenChange={setShowPrompt}
-              onRated={markAsRated}
-              onDismiss={dismissPrompt}
-              onDismissPermanently={dismissPermanently}
-            />
-            </div>
+        </Routes>
+        <NotificationPermissionPrompt />
+        <AppRatingPrompt
+          open={showPrompt}
+          onOpenChange={setShowPrompt}
+          onRated={markAsRated}
+          onDismiss={dismissPrompt}
+          onDismissPermanently={dismissPermanently}
+        />
+      </div>
+    </>
+  );
+};
+
+const App = () => {
+  const { isReturningUser, markFullSplashSeen } = useSplashPreference();
+
+  const safeSessionSet = (key: string, value: string) => {
+    try {
+      sessionStorage.setItem(key, value);
+    } catch {
+      // ignore
+    }
+  };
+
+  // Force splash on page load (always show at least short version)
+  const [showSplash, setShowSplash] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showContent, setShowContent] = useState(false);
+
+  const handleSplashFinish = () => {
+    setIsTransitioning(true);
+
+    setTimeout(() => {
+      setShowContent(true);
+    }, 100);
+
+    try {
+      if (!isReturningUser) {
+        markFullSplashSeen();
+      }
+      safeSessionSet("hasSeenSplash", "true");
+    } catch {
+      // ignore
+    }
+
+    setTimeout(() => {
+      setShowSplash(false);
+      setIsTransitioning(false);
+    }, 600);
+  };
+
+  useEffect(() => {
+    if (!showSplash && !isTransitioning) {
+      setShowContent(true);
+    }
+  }, [showSplash, isTransitioning]);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        
+        {/* Splash Screen Layer */}
+        {showSplash && (
+          <div 
+            className={`fixed inset-0 z-50 transition-all duration-700 ${
+              isTransitioning ? "opacity-0 scale-110" : "opacity-100 scale-100"
+            }`}
+          >
+             <SplashScreen 
+               onFinish={handleSplashFinish} 
+               isShortVersion={false}
+             />
+          </div>
+        )}
+        
+        {/* Main Content Layer */}
+        <div
+          className={`transition-opacity duration-700 ease-out ${
+            showContent ? "opacity-100" : "opacity-0"
+          }`}
+          style={{
+            visibility: showContent ? "visible" : "hidden",
+          }}
+        >
+          <BrowserRouter>
+            <AppContent />
           </BrowserRouter>
         </div>
       </TooltipProvider>
