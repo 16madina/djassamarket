@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, Navigation, Rocket } from "lucide-react";
+import { MapPin, Navigation, Rocket, Sparkles } from "lucide-react";
 import { translateCondition } from "@/utils/translations";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { sortListingsByLocation, getLocationPriority } from "@/utils/geographicFiltering";
@@ -303,6 +303,14 @@ const RecentListings = () => {
     );
   };
 
+  // Helper: Check if listing is less than 24h old
+  const isNewListing = (createdAt: string) => {
+    const created = new Date(createdAt);
+    const now = new Date();
+    const hoursDiff = (now.getTime() - created.getTime()) / (1000 * 60 * 60);
+    return hoursDiff < 24;
+  };
+
   // Fonction pour déterminer les badges à afficher (max 2, avec priorité)
   const getBadges = (listing: any) => {
     const badges: JSX.Element[] = [];
@@ -317,8 +325,18 @@ const RecentListings = () => {
       );
     }
     
-    // 1. Priorité haute: Badge Gratuit pour les articles à prix 0
-    if (listing.price === 0) {
+    // 1. Badge Nouveau pour les annonces < 24h
+    if (isNewListing(listing.created_at) && badges.length < 2) {
+      badges.push(
+        <Badge key="nouveau" className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white backdrop-blur-sm text-xs font-medium gap-1">
+          <Sparkles className="h-3 w-3" />
+          Nouveau
+        </Badge>
+      );
+    }
+    
+    // 2. Priorité haute: Badge Gratuit pour les articles à prix 0
+    if (listing.price === 0 && badges.length < 2) {
       badges.push(
         <Badge key="gratuit" className="bg-green-500 text-white backdrop-blur-sm text-xs font-medium">
           Gratuit
@@ -326,7 +344,7 @@ const RecentListings = () => {
       );
     }
     
-    // 2. État (condition)
+    // 3. État (condition)
     if (listing.condition && badges.length < 2) {
       badges.push(
         <Badge key="condition" className="bg-accent/90 text-accent-foreground backdrop-blur-sm text-xs font-medium">
