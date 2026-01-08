@@ -172,11 +172,11 @@ export const usePushNotifications = () => {
 
         // Listen for notification actions (background/killed)
         await FirebaseMessaging.addListener('notificationActionPerformed', (event: { notification: { data?: Record<string, string> } }) => {
-          console.log('FCM notification action performed:', event);
+          console.log('FCM notification action performed:', JSON.stringify(event));
           
-          const route = getRouteFromNotificationData(event.notification.data);
+          const route = getRouteFromNotificationData(event.notification?.data);
           if (route) {
-            console.log('📍 Notification tap - storing route for navigation:', route);
+            console.log('📍 Notification tap - navigating to:', route);
             // Store the route in sessionStorage for App.tsx to handle after full load
             try {
               sessionStorage.setItem('pendingNotificationRoute', route);
@@ -184,15 +184,39 @@ export const usePushNotifications = () => {
               // ignore
             }
             pendingNotificationRoute = route;
+            
+            // Also try immediate navigation via window.location for cold start
+            if (typeof window !== 'undefined' && window.location.pathname !== route) {
+              console.log('📍 Immediate navigation to:', route);
+              window.location.href = route;
+            }
           }
         });
 
         // Check for notification that launched the app (Android cold start)
         try {
+          // On Android, check if there's a notification that launched the app
           const launchNotification = await FirebaseMessaging.getDeliveredNotifications();
-          console.log('📬 Delivered notifications on launch:', launchNotification?.notifications?.length || 0);
+          console.log('📬 Delivered notifications on launch:', JSON.stringify(launchNotification));
+          
+          // If there are delivered notifications, check the most recent one for launch data
+          if (launchNotification?.notifications?.length > 0) {
+            const mostRecent = launchNotification.notifications[0];
+            if (mostRecent?.data) {
+              const route = getRouteFromNotificationData(mostRecent.data as Record<string, string>);
+              if (route) {
+                console.log('📍 Found launch notification route:', route);
+                pendingNotificationRoute = route;
+                try {
+                  sessionStorage.setItem('pendingNotificationRoute', route);
+                } catch {
+                  // ignore
+                }
+              }
+            }
+          }
         } catch (e) {
-          console.log('Could not check delivered notifications');
+          console.log('Could not check delivered notifications:', e);
         }
 
         // Get FCM token (this automatically handles APNs -> FCM conversion on iOS)
