@@ -1,0 +1,26 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAM_ID.com.ayoka.market",
+        "paths": [
+          "/",
+          "/referral",
+          "/auth",
+          "/listing/*",
+          "/messages",
+          "/profile/*",
+          "/email-verified",
+          "/reset-password",
+          "/open/*"
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": [
+      "TEAM_ID.com.ayoka.market"
+    ]
+  }
+}

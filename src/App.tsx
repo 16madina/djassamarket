@@ -41,6 +41,7 @@ import ChildSafety from "./pages/settings/ChildSafety";
 import Transactions from "./pages/Transactions";
 import SellerBadgesInfo from "./pages/settings/SellerBadges";
 import Referral from "./pages/Referral";
+import OpenApp from "./pages/OpenApp";
 
 import TestCamera from "./pages/TestCamera";
 import AdminPerformance from "./pages/AdminPerformance";
@@ -51,6 +52,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import { NotificationPermissionPrompt } from "./components/notifications/NotificationPermissionPrompt";
 import { AppRatingPrompt } from "./components/AppRatingPrompt";
+import { DeepLinkHandler } from "./components/DeepLinkHandler";
 
 const queryClient = new QueryClient();
 
@@ -190,6 +192,7 @@ const App = () => {
           <BrowserRouter>
             <ScrollToTop />
             <NotificationNavigationHandler />
+            <DeepLinkHandler />
             <div>
             <Routes>
           <Route path="/" element={<Index />} />
@@ -230,6 +233,8 @@ const App = () => {
           <Route path="/admin/notifications" element={<AdminNotifications />} />
           <Route path="/map" element={<MapView />} />
           <Route path="/referral" element={<Referral />} />
+          <Route path="/open" element={<OpenApp />} />
+          <Route path="/open/*" element={<OpenApp />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
             </Routes>

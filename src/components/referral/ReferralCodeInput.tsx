@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Gift, CheckCircle2, XCircle } from "lucide-react";
 import { useReferral } from "@/hooks/useReferral";
 import { toast } from "@/hooks/use-toast";
+import { getPendingReferralCode, clearPendingReferralCode } from "@/hooks/useReferralCode";
 
 interface ReferralCodeInputProps {
   onSuccess?: () => void;
@@ -14,7 +15,40 @@ export const ReferralCodeInput = ({ onSuccess }: ReferralCodeInputProps) => {
   const [code, setCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [autoApplied, setAutoApplied] = useState(false);
   const { registerReferral } = useReferral();
+
+  // Check for pending referral code on mount
+  useEffect(() => {
+    const pendingCode = getPendingReferralCode();
+    if (pendingCode && !autoApplied) {
+      setCode(pendingCode);
+      // Auto-apply the referral code
+      handleAutoApply(pendingCode);
+    }
+  }, [autoApplied]);
+
+  const handleAutoApply = async (referralCode: string) => {
+    setAutoApplied(true);
+    setIsSubmitting(true);
+    const result = await registerReferral(referralCode);
+    setIsSubmitting(false);
+
+    if (result.success) {
+      setStatus("success");
+      clearPendingReferralCode();
+      toast({
+        title: "🎉 Code parrain appliqué automatiquement !",
+        description: "Votre parrain sera récompensé quand vous publierez votre première annonce",
+      });
+      onSuccess?.();
+    } else {
+      // Don't show error for auto-apply, just clear the invalid code
+      clearPendingReferralCode();
+      setCode("");
+      setStatus("idle");
+    }
+  };
 
   const handleSubmit = async () => {
     if (!code.trim()) return;
