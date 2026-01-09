@@ -131,54 +131,53 @@ const OpenApp = () => {
             </div>
           )}
 
-          {platform !== "web" && (
-            <>
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  Téléchargez l'application pour une meilleure expérience
-                </p>
-                
-                <Button 
-                  onClick={handleOpenStore}
-                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
-                  size="lg"
-                >
-                  <Download className="h-5 w-5 mr-2" />
-                  {platform === "ios" ? (
-                    <>
-                      <FaApple className="h-5 w-5 mr-2" />
-                      Télécharger sur l'App Store
-                    </>
-                  ) : (
-                    <>
-                      <FaGooglePlay className="h-5 w-5 mr-2" />
-                      Télécharger sur Google Play
-                    </>
-                  )}
-                </Button>
-              </div>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">ou</span>
-                </div>
-              </div>
-            </>
-          )}
-
           <Button 
             onClick={handleContinueWeb}
-            variant={platform === "web" ? "default" : "outline"}
-            className={platform === "web" ? "w-full bg-gradient-to-r from-amber-500 to-orange-500" : "w-full"}
+            variant="default"
+            className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
             size="lg"
           >
             <Smartphone className="h-5 w-5 mr-2" />
             Continuer sur le site web
             <ArrowRight className="h-5 w-5 ml-2" />
           </Button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">ou téléchargez l'app</span>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <a 
+              href={appStoreUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-3 w-full bg-black text-white rounded-lg py-3 px-4 hover:bg-gray-800 transition-colors"
+            >
+              <FaApple className="h-6 w-6" />
+              <div className="text-left">
+                <div className="text-[10px] leading-tight">Télécharger sur</div>
+                <div className="text-lg font-semibold leading-tight">App Store</div>
+              </div>
+            </a>
+            
+            <a 
+              href={playStoreUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-3 w-full bg-black text-white rounded-lg py-3 px-4 hover:bg-gray-800 transition-colors"
+            >
+              <FaGooglePlay className="h-5 w-5" />
+              <div className="text-left">
+                <div className="text-[10px] leading-tight">Disponible sur</div>
+                <div className="text-lg font-semibold leading-tight">Google Play</div>
+              </div>
+            </a>
+          </div>
         </CardContent>
       </Card>
     </div>
