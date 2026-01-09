@@ -10,14 +10,22 @@ const OpenApp = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isRedirecting, setIsRedirecting] = useState(true);
-  const [platform, setPlatform] = useState<"ios" | "android" | "web">("web");
-  
+
+  const detectPlatform = (): "ios" | "android" | "web" => {
+    const ua = navigator.userAgent.toLowerCase();
+    if (/iphone|ipad|ipod/.test(ua)) return "ios";
+    if (/android/.test(ua)) return "android";
+    return "web";
+  };
+
+  const [platform, setPlatform] = useState<"ios" | "android" | "web">(() => detectPlatform());
+
   // Get all possible parameters
   const refCode = searchParams.get("ref");
   const listingId = searchParams.get("listing");
   const sellerId = searchParams.get("seller");
   const pathParam = searchParams.get("path");
-  
+
   // Determine target path based on parameters
   const getTargetPath = () => {
     if (listingId) return `/listing/${listingId}`;
@@ -25,67 +33,55 @@ const OpenApp = () => {
     if (pathParam) return pathParam;
     return "/";
   };
-  
+
   const targetPath = getTargetPath();
-  
+
   // Store IDs
   const APP_STORE_ID = "6756237345";
   const PLAY_STORE_ID = "com.ayoka.market";
-  
-  // Build query string for deep link
-  const queryParams = refCode ? `?ref=${refCode}` : "";
-  
+
+  const queryParams = refCode ? `?ref=${encodeURIComponent(refCode)}` : "";
+
   // URLs
   const appStoreUrl = `https://apps.apple.com/app/id${APP_STORE_ID}`;
   const playStoreUrl = `https://play.google.com/store/apps/details?id=${PLAY_STORE_ID}`;
-  const customSchemeUrl = `ayokamarket://${targetPath}${queryParams}`;
-  const universalLinkUrl = `https://ayokamarket.com${targetPath}${queryParams}`;
+
+  // Custom scheme: ayokamarket://listing/123?ref=CODE (no leading slash)
+  const schemePath = targetPath.replace(/^\/+/, "");
+  const customSchemeUrl = `ayokamarket://${schemePath}${queryParams}`;
 
   useEffect(() => {
-    // Detect platform
-    const userAgent = navigator.userAgent.toLowerCase();
-    if (/iphone|ipad|ipod/.test(userAgent)) {
-      setPlatform("ios");
-    } else if (/android/.test(userAgent)) {
-      setPlatform("android");
-    } else {
-      setPlatform("web");
-    }
+    const detected = detectPlatform();
+    setPlatform(detected);
 
     // Store referral code if present
     if (refCode) {
       localStorage.setItem("pendingReferralCode", refCode);
     }
 
-    // Try to open the app
-    const tryOpenApp = async () => {
-      // For mobile, try to open the app
-      if (platform !== "web") {
-        // Create hidden iframe to try custom scheme
-        const iframe = document.createElement("iframe");
-        iframe.style.display = "none";
-        iframe.src = customSchemeUrl;
-        document.body.appendChild(iframe);
+    // Web: route inside the SPA
+    if (detected === "web") {
+      setIsRedirecting(false);
+      navigate(targetPath + queryParams, { replace: true });
+      return;
+    }
 
-        // Also try the universal/app link
-        setTimeout(() => {
-          window.location.href = universalLinkUrl;
-        }, 100);
+    // Mobile: try to open the native app via custom scheme.
+    const iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    iframe.src = customSchemeUrl;
+    document.body.appendChild(iframe);
 
-        // If still here after delay, show the page
-        setTimeout(() => {
-          setIsRedirecting(false);
-          document.body.removeChild(iframe);
-        }, 2500);
-      } else {
-        // On web, redirect to the target path
-        setIsRedirecting(false);
-        navigate(targetPath + queryParams);
-      }
+    const timer = window.setTimeout(() => {
+      setIsRedirecting(false);
+      if (document.body.contains(iframe)) document.body.removeChild(iframe);
+    }, 2000);
+
+    return () => {
+      window.clearTimeout(timer);
+      if (document.body.contains(iframe)) document.body.removeChild(iframe);
     };
-
-    tryOpenApp();
-  }, [platform, refCode, targetPath, navigate, customSchemeUrl, universalLinkUrl]);
+  }, [refCode, targetPath, navigate, customSchemeUrl, queryParams]);
 
   const handleOpenStore = () => {
     if (platform === "ios") {
