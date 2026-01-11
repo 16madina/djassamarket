@@ -115,7 +115,12 @@ const NotificationNavigationHandler = () => {
 
 // Inner component that uses hooks requiring React context
 const AppContent = () => {
-  // Initialize push notifications inside BrowserRouter
+  const location = useLocation();
+  
+  // Pages where we don't show global prompts (landing pages, etc.)
+  const isLandingPage = location.pathname === '/download' || location.pathname === '/open-app' || location.pathname.startsWith('/open-app/');
+  
+  // Initialize push notifications inside BrowserRouter (skip for landing pages)
   usePushNotifications();
   
   // App rating system
@@ -171,14 +176,16 @@ const AppContent = () => {
           <Route path="/download" element={<Download />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-        <NotificationPermissionPrompt />
-        <AppRatingPrompt
-          open={showPrompt}
-          onOpenChange={setShowPrompt}
-          onRated={markAsRated}
-          onDismiss={dismissPrompt}
-          onDismissPermanently={dismissPermanently}
-        />
+        {!isLandingPage && <NotificationPermissionPrompt />}
+        {!isLandingPage && (
+          <AppRatingPrompt
+            open={showPrompt}
+            onOpenChange={setShowPrompt}
+            onRated={markAsRated}
+            onDismiss={dismissPrompt}
+            onDismissPermanently={dismissPermanently}
+          />
+        )}
       </div>
     </>
   );
