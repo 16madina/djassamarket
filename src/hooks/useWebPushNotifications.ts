@@ -70,27 +70,57 @@ export const useWebPushNotifications = () => {
     }
   }, []);
 
-  // Get FCM token from service worker
+  // Get FCM token from service worker using Firebase SDK
   const getTokenFromServiceWorker = async (registration: ServiceWorkerRegistration): Promise<string | null> => {
     try {
-      // For web push, we use the VAPID key approach
-      // This is a simplified version - in production you'd use Firebase SDK
-      const vapidKey = urlBase64ToUint8Array(
-        // This should be your VAPID public key from Firebase Console
-        'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U'
-      );
+      // Try using Firebase SDK for proper FCM token
+      const { getMessaging, getToken } = await import('firebase/messaging');
+      const { initializeApp, getApps, getApp } = await import('firebase/app');
       
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: vapidKey as BufferSource
+      // Firebase config (same as in firebase-messaging-sw.js)
+      const firebaseConfig = {
+        apiKey: "AIzaSyCDYHY9hcv_45bkzs4d6qe7PklCb1vV-48",
+        authDomain: "ayoka-market.firebaseapp.com",
+        projectId: "ayoka-market",
+        storageBucket: "ayoka-market.firebasestorage.app",
+        messagingSenderId: "198878757338",
+        appId: "1:198878757338:android:92852e251472f7acd3c0e3"
+      };
+      
+      // Initialize Firebase if not already done
+      const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+      const messaging = getMessaging(app);
+      
+      // Get FCM token with the service worker
+      const token = await getToken(messaging, {
+        serviceWorkerRegistration: registration,
+        vapidKey: 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U'
       });
       
-      // Convert subscription to a token-like string
-      const token = btoa(JSON.stringify(subscription.toJSON()));
+      console.log('✅ Web FCM token obtained:', token?.substring(0, 30) + '...');
       return token;
     } catch (error) {
-      console.error('Error getting push subscription:', error);
-      return null;
+      console.error('Error getting FCM token from Firebase SDK:', error);
+      
+      // Fallback to Web Push API subscription
+      try {
+        const vapidKey = urlBase64ToUint8Array(
+          'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U'
+        );
+        
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: vapidKey as BufferSource
+        });
+        
+        // Convert subscription to a token-like string
+        const token = btoa(JSON.stringify(subscription.toJSON()));
+        console.log('✅ Web Push subscription fallback token obtained');
+        return token;
+      } catch (fallbackError) {
+        console.error('Error with fallback push subscription:', fallbackError);
+        return null;
+      }
     }
   };
 
